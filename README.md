@@ -1,4 +1,3 @@
 # HybridRead
 
-Test dit ook even
-Test even 
+README file will be updated soon 
