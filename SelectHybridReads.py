@@ -1,5 +1,9 @@
 """
-Try to make classes
+
+Input needed: output file from align_all_reads.py
+
+Script that finds hybrid reads
+
 
 """
 
