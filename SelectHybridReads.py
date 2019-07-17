@@ -10,6 +10,7 @@ Script that finds hybrid reads
 from sys import argv
 
 class ParseInput:
+
     
     def __init__(self, file_name):
         with open (file_name) as file_object:
@@ -17,7 +18,6 @@ class ParseInput:
         self.data_type = file_name[-9:-4]
     
     def collect_all_data(self):
-         
         collect_all_data = []
         input_file = self.input.split('$$$')
         for read_data in input_file[1:-1]:   # 1:-1
@@ -32,26 +32,28 @@ class ParseInput:
         
         return collect_all_data, allele_data
 
-    def get_allele_combinations(self, allele_data):
+    @staticmethod
+    def get_allele_combinations(allele_data):
         """
         This function creates all allele combinations (the type names) and returns them in a list
 
         allele_data: list, with all alleles and sequences
         """
+        # for samples with 5 different alleles
+        if len(allele_data) == 5:
+            first_nr_list = [0,0,0,0,1,1,1,2,2,3]
+            second_nr_list = [1,2,3,4,2,3,4,3,4,4] 
+        
+        # for samples with 6 different alleles
+        if len(allele_data) == 6:
+            first_nr_list = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
+            second_nr_list = [1,2,3,4,5,2,3,4,5,3,4,5,4,5,5]
 
         all_alleles_list = []
         for allele, seq in allele_data:
            all_alleles_list += [allele]
 
         all_combinations_list = []
-        # these number lists only work when B is homogenous and the others heterogenous
-        first_nr_list = [0,0,0,0,1,1,1,2,2,3]
-        second_nr_list = [1,2,3,4,2,3,4,3,4,4] 
-        
-        # for samples with 6 different alleles
-     #   first_nr_list = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
-     #   second_nr_list = [1,2,3,4,5,2,3,4,5,3,4,5,4,5,5] 
-    
         for i in range(len(first_nr_list)):
             all_combinations_list += [[all_alleles_list[int(first_nr_list[i])], all_alleles_list[int(second_nr_list[i])]]]
         
@@ -64,6 +66,17 @@ class Read:
         self.read_aligned_seq = read_aligned_seq
         self.allele_data = allele_data
     
+    
+    def check_alignment(self): 
+        # Check if alignment is correct
+        
+        correct_alignment = True
+        check_alignment = self.read_aligned_seq.replace('-', '')
+        if self.read_seq != check_alignment:
+            correct_alignment = False
+        
+        return correct_alignment
+    
     def apply_qv(self):
         """
         Checks nucleotide quality values, if lower than a given value, then the nuclotide is replaced by a 'N'
@@ -75,14 +88,6 @@ class Read:
         '*':9, '+':10, ',':11,'-':12, '.':13, '/':14, '0':15, '1':16, '2':17, '3':18,\
         '4':19, '5':20, '6':21, '7':22, '8':23, '9':24, ':':25, ';':26, '<':27, '=':28,\
         '>':29, '?':30, '@':31, 'A':32, 'B':33, 'C':34, 'D':35, 'E':36, 'F':37, 'G':38, 'H':39, 'I':40}
-
-        # Check if alignment is correct
-
-        check_alignment = self.read_aligned_seq.replace('-', '')
-    
-        if self.read_seq != check_alignment:
-            read_checked_aligned_seq = 'incorrect_aligned'
-            return read_checked_aligned_seq
     
         read_checked_seq = '' 
         for i, qual in enumerate(self.read_qv):
@@ -120,7 +125,7 @@ class Read:
         read_checked_aligned_seq = read_checked_aligned_seq + '-' * count_read_end
         return read_checked_aligned_seq
     
-    
+
     def check_read_artefacts(self, read_aligned_qv):
         """" 
         Check if read has artefect
@@ -154,8 +159,24 @@ class Read:
             if i >= start_relative_read_position[-1]+1 and char != '-':
                 relative_read_position += [i]
                 relative_read_nucleotide += [char]
+       
+        mismatch_track = self.__create_mismatch_track(allele_data, read_seq, relative_read_position, relative_read_nucleotide)
 
+        # if a nucleotide in the read is considered as artefact (5 in mismatch track) then it is replaced by 'N'
+        read_aligned_fully_checked = ''
+        for i, nuc in enumerate(read_seq):
+            try:
+                mismatch_char = int(mismatch_track[i])
+            except:
+                mismatch_char = mismatch_track[i]
+            if mismatch_char == 5:
+                read_aligned_fully_checked += 'N'
+            if mismatch_char != 5:
+                read_aligned_fully_checked += nuc
+        return read_aligned_fully_checked
 
+    @staticmethod
+    def __create_mismatch_track(allele_data, read_seq, relative_read_position, relative_read_nucleotide):
         # create a mismatch track string, for each mismatch in the allele '1' is added, up to 5  (where all alleles have mismatches)
         mismatch_track = '-' * len(read_seq)
 
@@ -185,42 +206,25 @@ class Read:
                         right_mismatch_track = mismatch_track[i+1:]
                         mismatch_track = left_mismatch_track + '1' + right_mismatch_track
 
-        artefacts = mismatch_track.count('5')  
+        return mismatch_track
 
-        # if a nucleotide in the read is considered as artefact (5 in mismatch track) then it is replaced by 'N'
-        read_aligned_fully_checked = ''
-        for i, nuc in enumerate(read_seq):
-            try:
-                mismatch_char = int(mismatch_track[i])
-            except:
-                mismatch_char = mismatch_track[i]
-            if mismatch_char == 5:
-                read_aligned_fully_checked += 'N'
-            if mismatch_char != 5:
-                read_aligned_fully_checked += nuc
-        return read_aligned_fully_checked
 
-        
-  
     def get_relative_position(self):
         """
         Determines the (consensus) read position for each allele and returns it in 
         a dict.
     
         """
-        allele_data = self.allele_data
-        read_aligned_seq = self.read_aligned_seq
 
         read_pos_dict = {}
-
-        for allele, seq in allele_data:
+        for allele, seq in  self.allele_data:
             allele_seq = seq
             read_position = []
             # remove '-' left and right from allele seq and give read the same length
             allele_seq_wo_left = allele_seq.lstrip('-')
             left_difference = len(allele_seq) - len(allele_seq_wo_left)
             allele_seq_wo_right = allele_seq.rstrip('-')
-            sequence_seq_wo_rl = read_aligned_seq[left_difference:len(allele_seq_wo_right)]
+            sequence_seq_wo_rl = self.read_aligned_seq[left_difference:len(allele_seq_wo_right)]
             allele_seq_wo_rl = allele_seq.strip('-')
 
             # Remove '-' right from the read
@@ -250,44 +254,50 @@ class Read:
                 if len(read_position) != 0:
                     pos = read_position[-1] + 1
             read_pos_dict[allele] = [read_position]
+      
+        # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide
+        allele_name =  self.allele_data[0][0]
+        if 'K' in self.read_aligned_seq and read_pos_dict[allele_name] == [[]]:
+            read_pos_dict = self.__get_special_case_pos(read_pos_dict, allele_name)
+        return read_pos_dict
 
-        ## wanneer we maar 1 nuc hebben als to region en dat het allel toevallig een '-' heeft
-        allele_name = allele_data[0][0]
-        if 'K' in read_aligned_seq and read_pos_dict[allele_name] == [[]]:
+    @staticmethod
+    def __get_special_case_pos(read_pos_dict, allele_name):
+        # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide
+        read_start_seen = False
+        pos = 0
+        read_position = []
+        for allele, seq in  self.allele_data:
+            allele_seq = seq
+            
+            # remove '-' left and right from allele seq and give read the same length
+            allele_seq_wo_left = allele_seq.lstrip('-')
+            left_difference = len(allele_seq) - len(allele_seq_wo_left)
+            allele_seq_wo_right = allele_seq.rstrip('-')
+            sequence_seq_wo_rl = self.read_aligned_seq[left_difference:len(allele_seq_wo_right)]
+            allele_seq_wo_rl = allele_seq.strip('-')
+
+            # Remove '-' right from the read
+            sequence_read = sequence_seq_wo_rl.rstrip('-')
+
+            read_start_seen = False
+            deletion_count_allele_to_read_start = 0
+            for i, char in enumerate(sequence_read):
+                if char == '-' and read_start_seen ==  False:
+                    if allele_seq_wo_rl[i] == '-':
+                        deletion_count_allele_to_read_start += 1
+                if char != '-':
+                    read_start_seen = True
+
             read_start_seen = False
             pos = 0
-            read_position = []
-            for allele, seq in allele_data:
-                allele_seq = seq
-            
-                # remove '-' left and right from allele seq and give read the same length
-                allele_seq_wo_left = allele_seq.lstrip('-')
-                left_difference = len(allele_seq) - len(allele_seq_wo_left)
-                allele_seq_wo_right = allele_seq.rstrip('-')
-                sequence_seq_wo_rl = read_aligned_seq[left_difference:len(allele_seq_wo_right)]
-                allele_seq_wo_rl = allele_seq.strip('-')
+            for i, char in enumerate(sequence_read):
+                pos = i - deletion_count_allele_to_read_start
+                if char != '-' and read_start_seen == False:
+                    read_position = [pos]
 
-                # Remove '-' right from the read
-                sequence_read = sequence_seq_wo_rl.rstrip('-')
-
-                read_start_seen = False
-                deletion_count_allele_to_read_start = 0
-                for i, char in enumerate(sequence_read):
-                    if char == '-' and read_start_seen ==  False:
-                        if allele_seq_wo_rl[i] == '-':
-                            deletion_count_allele_to_read_start += 1
-                    if char != '-':
-                        read_start_seen = True
-
-                read_start_seen = False
-                pos = 0
-                for i, char in enumerate(sequence_read):
-                    pos = i - deletion_count_allele_to_read_start
-                    if char != '-' and read_start_seen == False:
-                        read_position = [pos]
-
-                del read_pos_dict[allele_name]
-                read_pos_dict[allele_name] = [read_position]
+            del read_pos_dict[allele_name]
+            read_pos_dict[allele_name] = [read_position]
 
         return (read_pos_dict)
 
@@ -721,32 +731,18 @@ class GetOneSwitchData():
         return (position_to_region1, position_to_region2, turn_over_region1, turn_over_region2)
     
     @staticmethod
-    def print_TO_output(allele1, pos_read1_allele1, pos_read2_allele1, turn_over_region1, pos_to_region1, allele2, pos_read1_allele2, pos_read2_allele2, turn_over_region2, pos_to_region2, nr_of_switches):
+    def print_TO_output(allele, pos_read1_allele, pos_read2_allele, turn_over_region, pos_to_region):
 
-        print (allele1.replace(' ', ''), 'and', allele2)
-        print ('Number of switches:\t\t', nr_of_switches, '\n')
-
-        ######### ALLELE 1 #############
-        print ('Allele match 1:\t\t\t ', allele1)
-        print ('Read 1 position:\t\t ', pos_read1_allele1)
-        print ('Read 2 position:\t\t ', pos_read2_allele1)
-        print ('Turnover sequence length:\t ', len(turn_over_region1))
-        if turn_over_region1 == '':
-            turn_over_region1 = '-'
-        print ('Turnover sequence:\t\t ', turn_over_region1)
-        print ('Turnover region position:\t ', pos_to_region1)
+        print ('Allele match:\t\t\t ', allele)
+        print ('Read 1 position:\t\t ', pos_read1_allele)
+        print ('Read 2 position:\t\t ', pos_read2_allele)
+        print ('Turnover sequence length:\t ', len(turn_over_region))
+        if turn_over_region == '':
+            turn_over_region = '-'
+        print ('Turnover sequence:\t\t ', turn_over_region)
+        print ('Turnover region position:\t ', pos_to_region)
         print ('\n')
          
-        ######### ALLELE 2 #############
-        print ('Allele match 2:\t\t\t ', allele2)
-        print ('Read 1 position:\t\t ', pos_read1_allele2)   
-        print ('Read 2 position:\t\t ', pos_read2_allele2)
-        print ('Turnover sequence length:\t ', len(turn_over_region2))
-        if turn_over_region2 == '':
-            turn_over_region2 = '-'
-        print ('Turnover sequence:\t\t ', turn_over_region2) 
-        print ('Turnover region position:\t ', pos_to_region2, '\n')
-
 
         
 if __name__ == "__main__":
@@ -776,15 +772,21 @@ if __name__ == "__main__":
         allele_data = read_info[4:]
         
         # Perform checks for read 1
-        R1_read = Read(read1_seq, read1_qv, read1_aligned_seq, allele_data)       
+        R1_read = Read(read1_seq, read1_qv, read1_aligned_seq, allele_data)
+        check_alignment = R1_read.check_alignment()
+        if check_alignment == False:
+            continue        
         R1_first_check = R1_read.apply_qv()
         R1_second_check = R1_read.check_read_artefacts(R1_first_check)
         
         # Perform checks for read 2
         R2_read = Read(read2_seq, read2_qv, read2_aligned_seq, allele_data)
+        check_alignment = R2_read.check_alignment()
+        if check_alignment == False:
+            continue  
         R2_first_check = R2_read.apply_qv()
         R2_second_check = R2_read.check_read_artefacts(R2_first_check)
-        
+
         # Check if read pair met the requirements
         R1_and_R2 = ReadPair(R1_second_check, R2_second_check, read1_seq, read2_seq)
         approve_reads = R1_and_R2.check_read_pair()
@@ -843,5 +845,6 @@ if __name__ == "__main__":
                 TO_allele2_dict = TO2_seq.get_relative_position()
 
                 pos_to_region1, pos_to_region2, turn_over_region1, turn_over_region2 = final_to_region.get_TO_position(TO_allele1_dict, TO_allele2_dict)
-
-                GetOneSwitchData.print_TO_output(allele1, pos_read1_allele1, pos_read2_allele1, turn_over_region1, pos_to_region1, allele2, pos_read1_allele2, pos_read2_allele2, turn_over_region2, pos_to_region2, nr_of_switches)
+                print (allele1, allele2)
+                GetOneSwitchData.print_TO_output(allele1, pos_read1_allele1, pos_read2_allele1, turn_over_region1, pos_to_region1)
+                GetOneSwitchData.print_TO_output(allele2, pos_read1_allele2, pos_read2_allele2, turn_over_region2, pos_to_region2)
