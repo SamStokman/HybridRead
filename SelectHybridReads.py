@@ -20,7 +20,7 @@ class ParseInput:
     def collect_all_data(self):
         collect_all_data = []
         input_file = self.input.split('$$$')
-        for read_data in input_file[1:2]:   # 1:-1
+        for read_data in input_file[11:12]:   # 1:-1
             temp_collect_list = []
             read_data = read_data.split('\n')
             for line in read_data:
@@ -62,6 +62,7 @@ class ParseInput:
 class Read:
     def __init__(self, read_seq, read_qv, read_aligned_seq, allele_data):
         self.read_seq = read_seq
+        self.read_length = len(read_seq)
         self.read_qv = read_qv
         self.read_aligned_seq = read_aligned_seq
         self.allele_data = allele_data
@@ -208,7 +209,7 @@ class Read:
 
         return mismatch_track
 
-    def get_mismatches(self, which_read, read_aligned_fully_checked):
+    def get_mismatches(self, read_aligned_fully_checked):
         """
         Check for mismatches read vs all alleles (substitutions, insertions and deletions)
 
@@ -217,14 +218,13 @@ class Read:
 
         """
         read_seq = read_aligned_fully_checked
-        allele_data = self.allele_data
-    
+
         # get the read position (relative to the alleles) 
         start_relative_read_position = []
         start_relative_read_nucleotide = []
         nr_of_switches = 0
-        nuc = read_seq[0]
-        for i, char in enumerate(read_seq):
+        nuc = read_aligned_fully_checked[0]
+        for i, char in enumerate(read_aligned_fully_checked):
             if nuc == '-' and nuc != char:
                 nr_of_switches += 1
                 start_relative_read_position += [i]
@@ -232,10 +232,45 @@ class Read:
             nuc = char
 
         # get the allele position (relative to the alleles), to check whether the read starts in front of the allele
-    
+        deletion_correction_dict = self.__check_read_start(start_relative_read_position, read_aligned_fully_checked)
+
+        relative_read_position = []
+        relative_read_nucleotide = []
+        for i, char in enumerate(read_seq):
+            if i >= start_relative_read_position[0] and i <= start_relative_read_position[-1]:
+                relative_read_position += [i]
+                relative_read_nucleotide += [char]
+            if i >= start_relative_read_position[-1]+1 and char != '-':
+                relative_read_position += [i]
+                relative_read_nucleotide += [char]
+
+        extended_mismatch_dict = {}
+        mismatch_dict = {}
+        for allele, seq_string in self.allele_data:
+            substitutions = 0
+            insertions = 0
+            deletions = int(deletion_correction_dict[allele])
+            mismatches = 0
+            for i, chari in enumerate(seq_string):
+                if i in relative_read_position:
+                    read_nuc = relative_read_nucleotide[i-min(relative_read_position)]
+                    if chari != read_nuc:
+                        if read_nuc != '-' and read_nuc != '*' and read_nuc != 'N' and chari != '-': 
+                            substitutions += 1    
+                        if read_nuc == '-' and chari != '-':
+                            insertions += 1
+                        if read_nuc != '-' and read_nuc != '*' and chari == '-':
+                            deletions += 1
+                        mismatches = substitutions + insertions + deletions
+            mismatch_dict[allele] = [mismatches]
+            extended_mismatch_dict[allele] = [substitutions, insertions, deletions, mismatches]
+        return (mismatch_dict, extended_mismatch_dict)
+  
+
+
+    def __check_read_start(self, start_relative_read_position, read_aligned_fully_checked):
         deletion_correction_dict = {} # if reads starts in front of allele
-        for allele, seq in allele_data:  
-            seq_string = seq
+        for allele, seq_string in self.allele_data: 
             start_allele_post = 0
             if seq_string.startswith('-'):
                 start_relative_allele_position = []
@@ -258,51 +293,24 @@ class Read:
             else: 
                 deletion_correction = 0
                 deletion_correction_dict[allele] = deletion_correction
-            count_read_insertion_for_deletion_correction = read_seq[start_relative_read_position[0]:start_allele_post]
+            count_read_insertion_for_deletion_correction = read_aligned_fully_checked[start_relative_read_position[0]:start_allele_post]
             read_inserts = count_read_insertion_for_deletion_correction.count('-')
             deletion_correction_dict[allele] += read_inserts
 
-    
-        relative_read_position = []
-        relative_read_nucleotide = []
-        for i, char in enumerate(read_seq):
-            if i >= start_relative_read_position[0] and i <= start_relative_read_position[-1]:
-                relative_read_position += [i]
-                relative_read_nucleotide += [char]
-            if i >= start_relative_read_position[-1]+1 and char != '-':
-                relative_read_position += [i]
-                relative_read_nucleotide += [char]
+        return deletion_correction_dict
    
-
-        print ('Read info', which_read)
-        print ('Length: \t\t', len(relative_read_nucleotide))
+    @classmethod
+    def classmethod_for_non_read(cls, aligned_sequence, allele_data):
+        read_seq = aligned_sequence.lstrip('-').rstrip('-')
+        return cls(read_seq, '', aligned_sequence, allele_data)
+    
+    def print_mismatches(self, read_type, extended_mismatch_dict):
+        print ('\n\nRead info', read_type)
+        print ('Length: \t\t', self.read_length)
+        
         print ('\nAllele\t\t\tSubstitutions\tInsertions\tDeletions\tTotal nr. or mismatches')
-
-        mismatch_dict = {}
-        for allele, seq in allele_data:
-            substitutions = 0
-            insertions = 0
-            deletions = int(deletion_correction_dict[allele])
-            mismatches = 0
-            seq_string = seq
-            for i, chari in enumerate(seq_string):
-                if i in relative_read_position:
-                    read_nuc = relative_read_nucleotide[i-min(relative_read_position)]
-                    if chari != read_nuc:
-                        if read_nuc != '-' and read_nuc != '*' and read_nuc != 'N' and chari != '-': 
-                            substitutions += 1    
-                        if read_nuc == '-' and chari != '-':
-                            insertions += 1
-                        if read_nuc != '-' and read_nuc != '*' and chari == '-':
-                            deletions += 1
-                        mismatches = substitutions + insertions + deletions
-        
-            mismatch_dict[allele] = [mismatches]
-        
-
-            print (allele, '\t\t', substitutions, '\t\t', insertions, '\t\t',deletions, '\t\t', mismatches) 
-        print ('\n')
-        return (mismatch_dict)
+        for allele, mismatches in extended_mismatch_dict.items():
+            print (allele, '\t\t', mismatches[0], '\t\t', mismatches[1], '\t\t', mismatches[2], '\t\t', mismatches[3])
 
     def get_relative_position(self):
         """
@@ -312,8 +320,7 @@ class Read:
         """
 
         read_pos_dict = {}
-        for allele, seq in  self.allele_data:
-            allele_seq = seq
+        for allele, allele_seq in self.allele_data:
             read_position = []
             # remove '-' left and right from allele seq and give read the same length
             allele_seq_wo_left = allele_seq.lstrip('-')
@@ -349,15 +356,15 @@ class Read:
                 if len(read_position) != 0:
                     pos = read_position[-1] + 1
             read_pos_dict[allele] = [read_position]
-      
-        # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide
+
+        # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide  (weet niet offie het doet voor length 1)
         allele_name =  self.allele_data[0][0]
         if 'K' in self.read_aligned_seq and read_pos_dict[allele_name] == [[]]:
             read_pos_dict = self.__get_special_case_pos(read_pos_dict, allele_name)
         return read_pos_dict
 
-    @staticmethod
-    def __get_special_case_pos(read_pos_dict, allele_name):  #DEZE MOET NOG GETEST WORDEN
+
+    def __get_special_case_pos(self, read_pos_dict, allele_name):  #DEZE MOET NOG GETEST WORDEN
         # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide
         read_start_seen = False
         pos = 0
@@ -658,6 +665,7 @@ class CheckAlleleCombination():
                     new_indicator_str = new_indicator_str[1:]
 
         final_indicator_string = indicator_combo_str_wo_artefacts
+
         return final_indicator_string
         
     def get_switches(self, final_indicator_string):
@@ -694,8 +702,6 @@ class GetOneSwitchData():
         self.allele1 = allele1
         self.allele2 = allele2
         
-        self.turn_over_region1 = ''
-        self.turn_over_region2 = ''
 
     #def select_turnover_region(read_consensus, allele_combo, allele_info, orientation, read1_pos_dict, read2_pos_dict, position_consensus_dict):
     
@@ -739,6 +745,7 @@ class GetOneSwitchData():
         if start_pos == end_pos +1:
             print ('Turnover sequence contains 0 nucleotides')
 
+        # here nog private van maken of iets
         for i, char in enumerate(allele_seq_list[0]):
             if start_pos == end_pos:    # for TO with length 1
                 if i != start_pos:
@@ -747,22 +754,20 @@ class GetOneSwitchData():
                     if char == '-':
                         char = 'Z'
                     turn_over_region1_for_pos += char
-                    self.turn_over_region1 += char
             if start_pos == end_pos + 1:    # for TO with length 0
                 char = 'K'     # maken we gewoon altijd een K van, deze sequence bestaat toch niet
                 if i != start_pos:
                     turn_over_region1_for_pos += '-'
-                if i == start_pos + 1:
+                if i == start_pos:
                     turn_over_region1_for_pos += char
-            if start_pos != end_pos + 1 and start_pos != end_pos:
+            if start_pos != end_pos + 1 and start_pos != end_pos:  # for TO > length 1
                 if i < start_pos:
                     turn_over_region1_for_pos += '-'
                 if i > end_pos:
                     turn_over_region1_for_pos += '-'
                 if i >= start_pos and i <= end_pos:
                     turn_over_region1_for_pos += char
-                    self.turn_over_region1 += char
-     
+        
         for i, char in enumerate(allele_seq_list[1]):
             if start_pos == end_pos:    # for TO with length 1
                 if i != start_pos:
@@ -771,14 +776,13 @@ class GetOneSwitchData():
                     if char == '-':
                         char = 'Z'
                     turn_over_region2_for_pos += char
-                    self.turn_over_region2 += char
             if start_pos == end_pos + 1:   # for TO with length 0
                 char = 'K'
                 if i != start_pos:
                     turn_over_region2_for_pos += '-'
-                if i == start_pos + 1:
+                if i == start_pos:
                     turn_over_region2_for_pos += char
-            if start_pos != end_pos + 1 and start_pos != end_pos:
+            if start_pos != end_pos + 1 and start_pos != end_pos:  # for TO > length 1
                 if i == start_pos == end_pos + 1:
                     turn_over_region2_for_pos += char
                 if i < start_pos:
@@ -787,8 +791,7 @@ class GetOneSwitchData():
                     turn_over_region2_for_pos += '-'
                 if i >= start_pos and i <= end_pos:
                     turn_over_region2_for_pos += char
-                    self.turn_over_region2 += char
-        
+
         # Extract allele sequences
         seq_dict_allele1 = {}
         seq_dict_allele2 = {}
@@ -800,11 +803,11 @@ class GetOneSwitchData():
       
         seq_list_allele1 = sorted(seq_dict_allele1.items())
         seq_list_allele2 = sorted(seq_dict_allele2.items())
-        
+
         return turn_over_region1_for_pos, seq_list_allele1, turn_over_region2_for_pos, seq_list_allele2
         
-    def get_TO_position(self, TO_allele1_dict, TO_allele2_dict):
-    
+    def get_TO_position(self, TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos):
+
         allele1 = self.allele1
         allele2 = self.allele2
         # Get all start and stop positions from best allele matches (TO regions)
@@ -825,13 +828,20 @@ class GetOneSwitchData():
             start_pos_allele2_TO_region = positions_list_allele2_TO_region[0][0]
             end_pos_allele2_TO_region = positions_list_allele2_TO_region[0][-1] 
 
-        # delete deletions
-        turn_over_region1 = self.turn_over_region1.replace('-','')
-        turn_over_region2 = self.turn_over_region2.replace('-','')
+        # delete deletions, and K, since it is a non existing TO sequence
+        turn_over_region1 = turn_over_region1_for_pos.replace('K','-').replace('-','')
+        turn_over_region2 = turn_over_region2_for_pos.replace('K','-').replace('-','')
 
-        position_to_region1 = str(start_pos_allele1_TO_region) + '-'+ str(end_pos_allele1_TO_region)
-        position_to_region2 = str(start_pos_allele2_TO_region) + '-'+ str(end_pos_allele2_TO_region)
-
+        # if length TO position is 0 or 1, just the start position is taken into account
+        if start_pos_allele1_TO_region != end_pos_allele1_TO_region:
+            position_to_region1 = str(start_pos_allele1_TO_region) + '-'+ str(end_pos_allele1_TO_region)
+        if start_pos_allele2_TO_region != end_pos_allele2_TO_region:
+            position_to_region2 = str(start_pos_allele2_TO_region) + '-'+ str(end_pos_allele2_TO_region)
+        if start_pos_allele1_TO_region == end_pos_allele1_TO_region:
+            position_to_region1 = str(start_pos_allele1_TO_region)
+        if start_pos_allele2_TO_region == end_pos_allele2_TO_region:
+            position_to_region2 = str(start_pos_allele2_TO_region)
+       
         return (position_to_region1, position_to_region2, turn_over_region1, turn_over_region2)
     
     @staticmethod
@@ -883,9 +893,6 @@ if __name__ == "__main__":
         R1_alignment_after_first_check = R1_read.apply_qv()
         R1_alignment_after_second_check = R1_read.check_read_artefacts(R1_alignment_after_first_check)
 
-        
-        R1_mismatch_dict = R1_read.get_mismatches('First read', R1_alignment_after_second_check)
-        
         # Perform checks for read 2
         R2_read = Read(read2_seq, read2_qv, read2_aligned_seq, allele_data)
         check_alignment = R2_read.check_alignment()
@@ -894,8 +901,7 @@ if __name__ == "__main__":
         R2_alignment_after_first_check = R2_read.apply_qv()
         R2_alignment_after_second_check = R2_read.check_read_artefacts(R2_alignment_after_first_check)
 
-        R2_mismatch_dict = R2_read.get_mismatches('Second read', R2_alignment_after_second_check)
-
+        
 
         # Check if read pair met the requirements
         R1_and_R2 = ReadPair(R1_alignment_after_second_check, R2_alignment_after_second_check, read1_seq, read2_seq)
@@ -904,13 +910,19 @@ if __name__ == "__main__":
             print ('Paired-end read is accepted')
         if approve_reads == False:
             print ('Paired-end read is rejected')
-
             continue
-        
+        R1_mismatch_dict, R1_mismatch_dict_ex = R1_read.get_mismatches(R1_alignment_after_second_check)
+        R2_mismatch_dict, R2_mismatch_dict_ex = R2_read.get_mismatches(R2_alignment_after_second_check)
         # Create read consensus
         alignment_read_consensus = R1_and_R2.create_read_consensus()
-        consensus_read = Read('', '', alignment_read_consensus, allele_data)
-        mismatch_dict_read_con = consensus_read.get_mismatches('Read consensus', alignment_read_consensus)
+            
+        consensus_read = Read.classmethod_for_non_read(alignment_read_consensus, allele_data)
+        mismatch_dict_read_con, mismatch_dict_read_con_ex = consensus_read.get_mismatches(alignment_read_consensus)
+        
+        # print all mismatch info
+        R1_read.print_mismatches('First read', R1_mismatch_dict_ex)
+        R2_read.print_mismatches('Second read', R2_mismatch_dict_ex)
+        consensus_read.print_mismatches('Read consensus', mismatch_dict_read_con_ex)
 
         for allele_combo in all_combinations_list:
             allele1 = allele_combo[0]
@@ -951,13 +963,15 @@ if __name__ == "__main__":
                 final_to_region = GetOneSwitchData(allele1, allele2)
                 pos_read1_allele1, pos_read2_allele1, pos_read1_allele2, pos_read2_allele2 = final_to_region.get_read_position(read1_pos_dict, read2_pos_dict)
                 turn_over_region1_for_pos, seq_list_allele1, turn_over_region2_for_pos, seq_list_allele2 = final_to_region.prep_for_turnover_position(start_turn_pos, end_turn_pos, allele_seq_list, allele_data)
-                
-                # Get TO position dicts
-                TO1_seq = Read(seq_list_allele1, '', turn_over_region1_for_pos, allele_data)     
-                TO2_seq = Read(seq_list_allele2, '', turn_over_region2_for_pos, allele_data)    
+
+
+
+                TO1_seq = Read.classmethod_for_non_read(turn_over_region1_for_pos, seq_list_allele1)
+                TO2_seq = Read.classmethod_for_non_read(turn_over_region2_for_pos, seq_list_allele2)
+
                 TO_allele1_dict = TO1_seq.get_relative_position()
                 TO_allele2_dict = TO2_seq.get_relative_position()
 
-                pos_to_region1, pos_to_region2, turn_over_region1, turn_over_region2 = final_to_region.get_TO_position(TO_allele1_dict, TO_allele2_dict)
+                pos_to_region1, pos_to_region2, turn_over_region1, turn_over_region2 = final_to_region.get_TO_position(TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos)
                 GetOneSwitchData.print_TO_output(allele1, pos_read1_allele1, pos_read2_allele1, turn_over_region1, pos_to_region1)
                 GetOneSwitchData.print_TO_output(allele2, pos_read1_allele2, pos_read2_allele2, turn_over_region2, pos_to_region2)
