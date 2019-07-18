@@ -20,7 +20,7 @@ class ParseInput:
     def collect_all_data(self):
         collect_all_data = []
         input_file = self.input.split('$$$')
-        for read_data in input_file[11:12]:   # 1:-1
+        for read_data in input_file[1:-1]:   # 1:-1
             temp_collect_list = []
             read_data = read_data.split('\n')
             for line in read_data:
@@ -357,15 +357,17 @@ class Read:
                     pos = read_position[-1] + 1
             read_pos_dict[allele] = [read_position]
 
-        # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide  (weet niet offie het doet voor length 1)
+        # get position if turnover region has a length of 0 and the allele has '-' as nucleotide
         allele_name =  self.allele_data[0][0]
+
         if 'K' in self.read_aligned_seq and read_pos_dict[allele_name] == [[]]:
             read_pos_dict = self.__get_special_case_pos(read_pos_dict, allele_name)
+
         return read_pos_dict
 
 
-    def __get_special_case_pos(self, read_pos_dict, allele_name):  #DEZE MOET NOG GETEST WORDEN
-        # if turnover region has a length of 1 and the allele has '-' as nucleotide, select next nucleotide
+    def __get_special_case_pos(self, read_pos_dict, allele_name):  #NOG IETS VERZINNEN VOOR LENGTH IS 1
+        # if turnover region has a length of 0 and the allele has '-' as nucleotide, still get the correct position
         read_start_seen = False
         pos = 0
         read_position = []
@@ -665,7 +667,6 @@ class CheckAlleleCombination():
                     new_indicator_str = new_indicator_str[1:]
 
         final_indicator_string = indicator_combo_str_wo_artefacts
-
         return final_indicator_string
         
     def get_switches(self, final_indicator_string):
@@ -915,7 +916,7 @@ if __name__ == "__main__":
         R2_mismatch_dict, R2_mismatch_dict_ex = R2_read.get_mismatches(R2_alignment_after_second_check)
         # Create read consensus
         alignment_read_consensus = R1_and_R2.create_read_consensus()
-            
+
         consensus_read = Read.classmethod_for_non_read(alignment_read_consensus, allele_data)
         mismatch_dict_read_con, mismatch_dict_read_con_ex = consensus_read.get_mismatches(alignment_read_consensus)
         
