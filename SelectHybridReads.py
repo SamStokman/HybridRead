@@ -15,12 +15,11 @@ class ParseInput:
     def __init__(self, file_name):
         with open (file_name) as file_object:
             self.input = file_object.read()
-        self.data_type = file_name[-9:-4]
     
     def collect_all_data(self):
         collect_all_data = []
         input_file = self.input.split('$$$')
-        for read_data in input_file[1:-1]:   # 1:-1
+        for read_data in input_file[1:3]:   # 1:-1
             temp_collect_list = []
             read_data = read_data.split('\n')
             for line in read_data:
@@ -702,10 +701,7 @@ class GetOneSwitchData():
              
         self.allele1 = allele1
         self.allele2 = allele2
-        
-
-    #def select_turnover_region(read_consensus, allele_combo, allele_info, orientation, read1_pos_dict, read2_pos_dict, position_consensus_dict):
-    
+         
     def get_read_position(self, read1_pos_dict, read2_pos_dict): 
 
         # Extract turnover sequence, based on start and end position and the sequence of allele 1 and allele 2 
@@ -740,58 +736,11 @@ class GetOneSwitchData():
         allele1 = self.allele1
         allele2 = self.allele2
 
-        turn_over_region1_for_pos = ''
-        turn_over_region2_for_pos = ''       
+        turn_over_region1_for_pos = self.__get_pos_TO_region(allele_seq_list[0], start_pos, end_pos)
+        turn_over_region2_for_pos = self.__get_pos_TO_region(allele_seq_list[1], start_pos, end_pos)
  
         if start_pos == end_pos +1:
             print ('Turnover sequence contains 0 nucleotides')
-
-        # here nog private van maken of iets
-        for i, char in enumerate(allele_seq_list[0]):
-            if start_pos == end_pos:    # for TO with length 1
-                if i != start_pos:
-                    turn_over_region1_for_pos += '-'
-                if i == start_pos:
-                    if char == '-':
-                        char = 'Z'
-                    turn_over_region1_for_pos += char
-            if start_pos == end_pos + 1:    # for TO with length 0
-                char = 'K'     # maken we gewoon altijd een K van, deze sequence bestaat toch niet
-                if i != start_pos:
-                    turn_over_region1_for_pos += '-'
-                if i == start_pos:
-                    turn_over_region1_for_pos += char
-            if start_pos != end_pos + 1 and start_pos != end_pos:  # for TO > length 1
-                if i < start_pos:
-                    turn_over_region1_for_pos += '-'
-                if i > end_pos:
-                    turn_over_region1_for_pos += '-'
-                if i >= start_pos and i <= end_pos:
-                    turn_over_region1_for_pos += char
-        
-        for i, char in enumerate(allele_seq_list[1]):
-            if start_pos == end_pos:    # for TO with length 1
-                if i != start_pos:
-                    turn_over_region2_for_pos += '-'
-                if i == start_pos:
-                    if char == '-':
-                        char = 'Z'
-                    turn_over_region2_for_pos += char
-            if start_pos == end_pos + 1:   # for TO with length 0
-                char = 'K'
-                if i != start_pos:
-                    turn_over_region2_for_pos += '-'
-                if i == start_pos:
-                    turn_over_region2_for_pos += char
-            if start_pos != end_pos + 1 and start_pos != end_pos:  # for TO > length 1
-                if i == start_pos == end_pos + 1:
-                    turn_over_region2_for_pos += char
-                if i < start_pos:
-                    turn_over_region2_for_pos += '-'
-                if i > end_pos:
-                    turn_over_region2_for_pos += '-'
-                if i >= start_pos and i <= end_pos:
-                    turn_over_region2_for_pos += char
 
         # Extract allele sequences
         seq_dict_allele1 = {}
@@ -806,7 +755,34 @@ class GetOneSwitchData():
         seq_list_allele2 = sorted(seq_dict_allele2.items())
 
         return turn_over_region1_for_pos, seq_list_allele1, turn_over_region2_for_pos, seq_list_allele2
-        
+
+    @staticmethod
+    def __get_pos_TO_region(aligned_allele, start_pos, end_pos):
+
+        turn_over_region_for_pos = ''
+        for i, char in enumerate(aligned_allele):
+            if start_pos == end_pos:    # for TO with length 1
+                if i != start_pos:
+                    turn_over_region_for_pos += '-'
+                if i == start_pos:
+                    if char == '-':
+                        char = 'Z'
+                    turn_over_region_for_pos += char
+            if start_pos == end_pos + 1:    # for TO with length 0
+                char = 'K'     # maken we gewoon altijd een K van, deze sequence bestaat toch niet
+                if i != start_pos:
+                    turn_over_region_for_pos += '-'
+                if i == start_pos:
+                    turn_over_region_for_pos += char
+            if start_pos != end_pos + 1 and start_pos != end_pos:  # for TO > length 1
+                if i < start_pos:
+                    turn_over_region_for_pos += '-'
+                if i > end_pos:
+                    turn_over_region_for_pos += '-'
+                if i >= start_pos and i <= end_pos:
+                    turn_over_region_for_pos += char
+        return (turn_over_region_for_pos)
+       
     def get_TO_position(self, TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos):
 
         allele1 = self.allele1
@@ -829,7 +805,7 @@ class GetOneSwitchData():
             start_pos_allele2_TO_region = positions_list_allele2_TO_region[0][0]
             end_pos_allele2_TO_region = positions_list_allele2_TO_region[0][-1] 
 
-        # delete deletions, and K, since it is a non existing TO sequence
+        # delete deletions (just keep the sequence), and K, since it is a non existing TO sequence (lenght 0)
         turn_over_region1 = turn_over_region1_for_pos.replace('K','-').replace('-','')
         turn_over_region2 = turn_over_region2_for_pos.replace('K','-').replace('-','')
 
@@ -858,13 +834,45 @@ class GetOneSwitchData():
         print ('Turnover region position:\t ', pos_to_region)
         print ('\n')
          
+class CreateOutput():
+
+    data_type = ''
+
+
+
+    def __init__(self, readname):
+        self.readname = readname
+
+    def non_hybrid_read(self, allele_match, note):
+        """
+        Function that adds the non hybrid reads to the output file
+        Zero mismatches between both reads and same allele
+    
+        """
+        print ('Non hybrid read: ', self.read_name)
+        output_file_non_hybrids = 'non_hybrid_reads_{0}.txt'.format(data_type)
+    
+        # create output file
+        if os.path.isfile(output_file_non_hybrids) == False:
+            with open(output_file_non_hybrids, 'w') as db_file:
+                db_file.write('Read name\tAllele match\n') 
+            db_file.close()
+    
+        # Write read data into outfile
+        if note == '':
+            with open(output_file_non_hybrids, 'a') as db_file:
+                db_file.write(read_name + '\t' + allele_match + '\n') 
+   
+        if note != '':
+            with open(output_file_non_hybrids, 'a') as db_file:
+                db_file.write(read_name + '\t' + allele_match + '\t' + note + '\n') 
 
         
 if __name__ == "__main__":
     
     input_file = argv[1]
-        
-
+    CreateOutput.data_type = input_file[-9:-4]
+  
     # Class ParseInput (Parse input file and get all allele combinations)
     msa_test_output = ParseInput(input_file)
 
@@ -901,8 +909,6 @@ if __name__ == "__main__":
             continue  
         R2_alignment_after_first_check = R2_read.apply_qv()
         R2_alignment_after_second_check = R2_read.check_read_artefacts(R2_alignment_after_first_check)
-
-        
 
         # Check if read pair met the requirements
         R1_and_R2 = ReadPair(R1_alignment_after_second_check, R2_alignment_after_second_check, read1_seq, read2_seq)
@@ -962,10 +968,9 @@ if __name__ == "__main__":
                 read2_pos_dict = R2_read.get_relative_position()
                 
                 final_to_region = GetOneSwitchData(allele1, allele2)
+
                 pos_read1_allele1, pos_read2_allele1, pos_read1_allele2, pos_read2_allele2 = final_to_region.get_read_position(read1_pos_dict, read2_pos_dict)
                 turn_over_region1_for_pos, seq_list_allele1, turn_over_region2_for_pos, seq_list_allele2 = final_to_region.prep_for_turnover_position(start_turn_pos, end_turn_pos, allele_seq_list, allele_data)
-
-
 
                 TO1_seq = Read.classmethod_for_non_read(turn_over_region1_for_pos, seq_list_allele1)
                 TO2_seq = Read.classmethod_for_non_read(turn_over_region2_for_pos, seq_list_allele2)
