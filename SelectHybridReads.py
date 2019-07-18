@@ -574,8 +574,9 @@ class CheckAlleleCombination():
                     mismatch_indicator_combo_str += seq_allele_1[i]
                 if seq_allele_1[i] != '-' and seq_allele_2[i] != '-': 
                     mismatch_indicator_combo_str += 'M'
-
+        
         self.indicator_string = mismatch_indicator_combo_str
+
         return allele_seq_list
     
     def check_indicative_SNPs(self):
@@ -667,6 +668,7 @@ class CheckAlleleCombination():
                     new_indicator_str = new_indicator_str[1:]
 
         final_indicator_string = indicator_combo_str_wo_artefacts
+
         return final_indicator_string
         
     def get_switches(self, final_indicator_string):
@@ -767,6 +769,8 @@ class GetOneSwitchData():
                     turn_over_region_for_pos += '-'
                 if i == start_pos:
                     if char == '-':
+                        print ('heeerreeee')
+                        quit()
                         char = 'Z'
                     turn_over_region_for_pos += char
             if start_pos == end_pos + 1:    # for TO with length 0
