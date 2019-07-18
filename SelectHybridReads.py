@@ -8,6 +8,7 @@ Script that finds hybrid reads
 """
 
 from sys import argv
+import os
 
 class ParseInput:
 
@@ -19,7 +20,7 @@ class ParseInput:
     def collect_all_data(self):
         collect_all_data = []
         input_file = self.input.split('$$$')
-        for read_data in input_file[1:3]:   # 1:-1
+        for read_data in input_file[1:-1]:   # 1:-1
             temp_collect_list = []
             read_data = read_data.split('\n')
             for line in read_data:
@@ -631,7 +632,7 @@ class CheckAlleleCombination():
         if pcr_artefact >= 3:
             count_indicator_list = None
 
-        return count_indicator_list
+        return count_indicator_list, self.number_of_artefacts
         
     def update_indicator_string(self, count_indicator_list):
         """
@@ -691,7 +692,7 @@ class CheckAlleleCombination():
         return (nr_of_switches, start_turn_pos, end_turn_pos)
     
     def print_1_switch_alleles(self):
-        print ('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+        print ('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
         print ('Allele combination:\t\t ', self.allele1.strip(' '), 'and', self.allele2)
         print ('Number of artefacts:\t\t ', self.number_of_artefacts, '\n')
 
@@ -836,13 +837,39 @@ class GetOneSwitchData():
          
 class CreateOutput():
 
-    data_type = ''
 
+    def __init__(self, read_name):
+        self.read_name = read_name
+    
 
+    def prep_output_files(input_file_name):
+        data_type = input_file_name[-9:-4]
+        CreateOutput.output_file_non_hybrids = 'non_hybrid_reads_{0}.txt'.format(data_type)
+        CreateOutput.output_file_zero_reads = 'zero_reads_{0}.txt'.format(data_type)
+        CreateOutput.output_file_more_switches = 'hybrid_reads_more_switches_{0}.txt'.format(data_type)
+        CreateOutput.output_file_1_switch = 'hybrid_reads_1_switch_{0}.txt'.format(data_type)
+        CreateOutput.output_file_overall = 'metadata_{0}.txt'.format(data_type)
 
-    def __init__(self, readname):
-        self.readname = readname
+        #create output file for non hybrid reads
+        with open(CreateOutput.output_file_non_hybrids, 'w') as db_file:
+            db_file.write('Read name\tAllele match\n') 
+        db_file.close()
+    
+        #create output file for zero reads
+        with open(CreateOutput.output_file_zero_reads, 'w') as db_file:
+            db_file.write('Read name\tNote\n') 
+        db_file.close()
 
+        #create output file for hyrbid reads with more than 1 switch
+        with open(CreateOutput.output_file_more_switches, 'w') as db_file:
+            db_file.write('Read name\n') 
+        db_file.close()
+
+        #create output file for hyrbid reads with 1 switch
+        with open(CreateOutput.output_file_1_switch, 'w') as db_file:
+           db_file.write('Read name\tAllele match\tRead1 pos\tRead2 pos\tRead1 mis\tRead2 mis\tRead con mis\tArtefacts\tTurnover region pos\tTurnover sequence\n') 
+        db_file.close()      
+    
     def non_hybrid_read(self, allele_match, note):
         """
         Function that adds the non hybrid reads to the output file
@@ -850,28 +877,71 @@ class CreateOutput():
     
         """
         print ('Non hybrid read: ', self.read_name)
-        output_file_non_hybrids = 'non_hybrid_reads_{0}.txt'.format(data_type)
-    
-        # create output file
-        if os.path.isfile(output_file_non_hybrids) == False:
-            with open(output_file_non_hybrids, 'w') as db_file:
-                db_file.write('Read name\tAllele match\n') 
-            db_file.close()
-    
+        
         # Write read data into outfile
         if note == '':
-            with open(output_file_non_hybrids, 'a') as db_file:
-                db_file.write(read_name + '\t' + allele_match + '\n') 
+            with open(CreateOutput.output_file_non_hybrids, 'a') as db_file:
+                db_file.write(self.read_name + '\t' + allele_match + '\n') 
    
         if note != '':
-            with open(output_file_non_hybrids, 'a') as db_file:
-                db_file.write(read_name + '\t' + allele_match + '\t' + note + '\n') 
+            with open(CreateOutput.output_file_non_hybrids, 'a') as db_file:
+                db_file.write(self.read_name + '\t' + allele_match + '\t' + note + '\n') 
+ 
+    def zero_reads(self, note):
+        """
+        Function that adds the potential hybrid reads to the output file
+        All reads which cannot be classified to other catagories
 
+        """
+        print ('Read with 0 mismatches for multiple alleles:', read_name)
+
+        # add reads that have 0 mismatches for multiple alleles
+        with open(CreateOutput.output_file_zero_reads, 'a') as db_file:
+            db_file.write(self.read_name + '\t' + note + '\n') 
+    
+    def hybrid_read_more_switches(self):
+        """
+        Function that adds the hybrid reads with more than 1 switch to the output file
+    
+        """
+
+        print ('Read with more switches: ', read_name)
         
+        # add hybrid reads with more switches  
+        with open(CreateOutput.output_file_more_switches, 'a') as db_file:
+            db_file.write(read_name + '\n') 
+   
+    def hybrid_read_1_switch(self, allele, pos_read1_allele, pos_read2_allele, allele_read1_mismatches, allele_read2_mismatches, allele_consensus_mismatches, turn_over_region, pos_to_region, read_artefacts):
+        """
+        Function that adds the hybrid reads with 1 switch to the output file
+
+        """
+
+        if turn_over_region == '':
+            turn_over_region = '-'
+
+        # add hybrid reads with one switch
+        with open(CreateOutput.output_file_1_switch, 'a') as db_file:
+            db_file.write(str(self.read_name) + '\t' + str(allele) + '\t' + str(pos_read1_allele) + '\t' + str(pos_read2_allele) + '\t' + str(allele_read1_mismatches)  + '\t' + str(allele_read2_mismatches)\
+              + '\t' + str(allele_consensus_mismatches) + '\t' + str(read_artefacts) + '\t' + str(pos_to_region) + '\t' + str(turn_over_region) + '\n') 
+
+    @staticmethod
+    
+    def metadata(incorrect_aligned_reads, rejected_read_count, non_hybrid_count, zero_count, more_switches_count, one_switch_hybrid_count, total_nr_of_reads):
+    
+        with open(CreateOutput.output_file_overall, 'w') as db_file:
+            db_file.write('Incorrect aligned reads\t' + str(incorrect_aligned_reads) + '\n')       
+            db_file.write('Rejected reads\t' + str(rejected_read_count) + '\n')  
+            db_file.write('Non hybrid reads\t' + str(non_hybrid_count) + '\n')
+            db_file.write('Hybrid reads with more switches\t' + str(more_switches_count) + '\n')
+            db_file.write('Hybrid reads with 1 switch\t' + str(one_switch_hybrid_count) + '\n')
+            db_file.write('Read with 0 mismatches for multiple alleles\t' + str(zero_count) + '\n')
+            db_file.write('Total nr. of reads\t' + str(total_nr_of_reads) + '\n')
+
 if __name__ == "__main__":
     
     input_file = argv[1]
-    CreateOutput.data_type = input_file[-9:-4]
+    CreateOutput.prep_output_files(input_file)
   
     # Class ParseInput (Parse input file and get all allele combinations)
     msa_test_output = ParseInput(input_file)
@@ -879,8 +949,16 @@ if __name__ == "__main__":
     collect_all_data, allele_data  = msa_test_output.collect_all_data()
     all_combinations_list = msa_test_output.get_allele_combinations(allele_data)
 
+    incorrect_aligned_reads = 0
+    rejected_read_count = 0
+    non_hybrid_count = 0
+    zero_count = 0
+    more_switches_count = 0
+    one_switch_hybrid_count = 0
+    read_counter = 1
     for read_info in collect_all_data:
-
+        print ('Number of analyzed reads :', read_counter, '\n')
+        read_counter += 1
         print ('~~~~~~~~~~~~~~~~ Read analysis started ~~~~~~~~~~~~~~~~')
         read_name = read_info[0][0]
         print ('Read name :', read_name)
@@ -906,6 +984,7 @@ if __name__ == "__main__":
         R2_read = Read(read2_seq, read2_qv, read2_aligned_seq, allele_data)
         check_alignment = R2_read.check_alignment()
         if check_alignment == False:
+            incorrect_aligned_reads += 1
             continue  
         R2_alignment_after_first_check = R2_read.apply_qv()
         R2_alignment_after_second_check = R2_read.check_read_artefacts(R2_alignment_after_first_check)
@@ -916,21 +995,92 @@ if __name__ == "__main__":
         if approve_reads == True:
             print ('Paired-end read is accepted')
         if approve_reads == False:
+            rejected_read_count += 1
             print ('Paired-end read is rejected')
             continue
         R1_mismatch_dict, R1_mismatch_dict_ex = R1_read.get_mismatches(R1_alignment_after_second_check)
         R2_mismatch_dict, R2_mismatch_dict_ex = R2_read.get_mismatches(R2_alignment_after_second_check)
+
+        # Sort alleles, alleles with lowest nr of mismatches first
+        mismatch_dict_read1_sorted = sorted(R1_mismatch_dict.items(), key=lambda kv: kv[1])     
+        mismatch_dict_read2_sorted = sorted(R2_mismatch_dict.items(), key=lambda kv: kv[1])
+
+        # Count number of alleles with 0 mismatches for read 1
+        zero_mismatch_count_read1 = 0
+        zero_mismatch_allele_read1 = []
+        for allele, mismatches in R1_mismatch_dict.items():
+            if mismatches[0] == 0:
+                zero_mismatch_count_read1 += 1
+                zero_mismatch_allele_read1 += [allele]
+
+        # Count number of alleles with 0 mismatches for read 2
+        zero_mismatch_count_read2 = 0
+        zero_mismatch_allele_read2 = []
+        for allele, mismatches in R2_mismatch_dict.items():
+            if mismatches[0] == 0:
+                zero_mismatch_count_read2 += 1
+                zero_mismatch_allele_read2 += [allele]
+
+
+        ###########
+        ###########  Mismatches per read
+        ###########
+        ### For non hybrid reads (perfect non hybrid)
+        non_hybrid = False
+        if zero_mismatch_count_read1 == zero_mismatch_count_read2 == 1:
+            # First check if reads are hybrid, if same allele has mismatches for both reads, then it is a non hybrid
+            if mismatch_dict_read1_sorted[0][1][0] == 0:
+                check_allel = mismatch_dict_read1_sorted[0][0]
+                if R2_mismatch_dict[check_allel][0] == 0:
+                    allele_match =  mismatch_dict_read1_sorted[0][0]
+                    non_hybrid_count += 1
+                    read_output = CreateOutput(read_name)
+                    read_output.non_hybrid_read(allele_match, note)
+                    non_hybrid = True
+                    continue
+
+        ### Multiple alleles with 0 mismatches (zero_mismatch_multiple_alleles_count)
+        if zero_mismatch_count_read1 != 0 and zero_mismatch_count_read2 != 0:
+            if zero_mismatch_count_read1 > 1 or zero_mismatch_count_read2 > 1:
+                note = 'Note: Allele(s) {0} has/have 0 mismatches with read 1\tAllele(s) {1} has/have 0 mismatches with read 2'.format(zero_mismatch_allele_read1, zero_mismatch_allele_read2)
+                zero_count += 1
+                read_output = CreateOutput(read_name)
+                read_output.zero_reads(note)
+                non_hybrid = True
+                continue
+
+        ###########
+        ###########  Mismatches read consensus
+        ###########
+        ### For non hybrid reads with 0 or 1 mismatches in read consensus
+
+        
         # Create read consensus
         alignment_read_consensus = R1_and_R2.create_read_consensus()
-
         consensus_read = Read.classmethod_for_non_read(alignment_read_consensus, allele_data)
         mismatch_dict_read_con, mismatch_dict_read_con_ex = consensus_read.get_mismatches(alignment_read_consensus)
+        mismatch_dict_read_con_sorted = sorted(mismatch_dict_read_con.items(), key=lambda kv: kv[1])
+            
+        ### if read consensus has 0 or 1 mismatches
+        if mismatch_dict_read_con_sorted[0][1][0] == 0 or mismatch_dict_read_con_sorted[0][1][0] == 1:
+            allele_match = mismatch_dict_read_con_sorted[0][0]
+            if mismatch_dict_read_con_sorted[0][1][0] == 1:
+                note = 'Read consensus has 1 mismatch'
+            non_hybrid_count += 1
+            read_output = CreateOutput(read_name)
+            read_output.non_hybrid_read(allele_match, note)
+            continue
         
         # print all mismatch info
         R1_read.print_mismatches('First read', R1_mismatch_dict_ex)
         R2_read.print_mismatches('Second read', R2_mismatch_dict_ex)
         consensus_read.print_mismatches('Read consensus', mismatch_dict_read_con_ex)
 
+
+        ###########
+        ###########  Determine number of switches for all allele combinations
+        ###########
+        more_switches = True
         for allele_combo in all_combinations_list:
             allele1 = allele_combo[0]
             allele2 = allele_combo[1]
@@ -945,7 +1095,7 @@ if __name__ == "__main__":
                 continue
                 
             if check2 == True:
-                count_indicator_list = per_allele_info.check_alternately_SNPs()
+                count_indicator_list, number_of_artefacts = per_allele_info.check_alternately_SNPs()
             else:
                 continue
                 
@@ -958,12 +1108,13 @@ if __name__ == "__main__":
             
             if repeat_check1 == True:
                 nr_of_switches, start_turn_pos, end_turn_pos = per_allele_info.get_switches(final_indicator_string)
-                per_allele_info.print_1_switch_alleles()
             
             else:
                 continue
 
             if nr_of_switches == 1:
+                more_switches = False
+                per_allele_info.print_1_switch_alleles()
                 read1_pos_dict = R1_read.get_relative_position()
                 read2_pos_dict = R2_read.get_relative_position()
                 
@@ -981,3 +1132,29 @@ if __name__ == "__main__":
                 pos_to_region1, pos_to_region2, turn_over_region1, turn_over_region2 = final_to_region.get_TO_position(TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos)
                 GetOneSwitchData.print_TO_output(allele1, pos_read1_allele1, pos_read2_allele1, turn_over_region1, pos_to_region1)
                 GetOneSwitchData.print_TO_output(allele2, pos_read1_allele2, pos_read2_allele2, turn_over_region2, pos_to_region2)
+                
+                allele1_read1_mismatches = str(R1_mismatch_dict[allele1][0])
+                allele1_read2_mismatches = str(R2_mismatch_dict[allele1][0])
+                allele2_read1_mismatches = str(R1_mismatch_dict[allele2][0])
+                allele2_read2_mismatches = str(R2_mismatch_dict[allele2][0])
+                allele1_consensus_mismatches = str(mismatch_dict_read_con[allele1][0])
+                allele2_consensus_mismatches = str(mismatch_dict_read_con[allele2][0])
+
+                read_output = CreateOutput(read_name)
+                read_output.hybrid_read_1_switch(allele1, pos_read1_allele1, pos_read2_allele1, allele1_read1_mismatches, allele1_read2_mismatches, allele1_consensus_mismatches, turn_over_region1, pos_to_region1, number_of_artefacts)
+                read_output.hybrid_read_1_switch(allele2, pos_read1_allele2, pos_read2_allele2, allele2_read1_mismatches, allele2_read2_mismatches, allele2_consensus_mismatches, turn_over_region2, pos_to_region2, number_of_artefacts)
+
+        if more_switches == False:
+            print ('Hybrid read with 1 switch: ', read_name)
+            one_switch_hybrid_count += 1
+        
+        # For hybrid reads with more switches (too many mismatches)        
+        if more_switches == True:
+            more_switches_count += 1
+            read_output = CreateOutput(read_name)
+            read_output.hybrid_read_more_switches()
+       
+            
+    total_nr_of_reads = read_counter-1       
+    CreateOutput.metadata(incorrect_aligned_reads, rejected_read_count, non_hybrid_count, zero_count, more_switches_count, one_switch_hybrid_count, total_nr_of_reads)
+            
