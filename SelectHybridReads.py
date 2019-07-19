@@ -5,7 +5,7 @@ This script categorizes reads in non hybrid reads, zero reads, hybrid reads with
 The reads are categorized based on mismatches (SNPs) and the number of switches. 
 Also metadata is generated and the file with 1 switch data contains the most extended information.
 
-Input required: output file with alignments from align_all_reads.py
+Input required: output file with alignments from AllignAllRead.py
 
 """
 
@@ -14,6 +14,7 @@ import os
 
 class ParseInput:
     """
+    This class prepares the input data for further processing.
 
     Args:
         -
@@ -22,38 +23,41 @@ class ParseInput:
     @staticmethod
     def collect_all_data(input_file):
         """
+        Separetes the input data (aligned read pairs and the best matching alleles) per read pair.
         
         Args:
-            input_file (str): aligned reads and alleles, output from AllignAllRead.py
+            input_file (str): aligned read pairs and the best matching alleles, output from AllignAllRead.py
         
         Returns:
-            all_data (list): list of lists, each list contains the alignment with the read pair and the best matches for HLA-A, B and C.
-            allele_names (list): contains all allele types (max. 6)
+            all_data (list): list of lists, each list contains the read information (read name and quality values), allele
+            names and all alignments for the reads and best matches (HLA-A, B and C). 
+            allele_names (list): contains all allele names (max. 6)
         """
+
         all_data = []
         input_file = input_file.split('$$$')
-        for read_data in input_file[1:-1]:   # 1:-1
+        for per_read_pair_data in input_file[1:3]:   # 1:-1
             temp_collect_list = []
-            read_data = read_data.split('\n')
+            read_data = per_read_pair_data.split('\n')
             for line in read_data:
                 line = line.split('\t')
                 if len(line) > 1:
                     temp_collect_list += [line]
             all_data += [temp_collect_list]
         allele_names = all_data[0][4:]
-        
+
         return all_data, allele_names
 
     @staticmethod
     def get_allele_combinations(allele_names):
         """
-        This function creates all allele combinations (the type names) and returns them in a list
+        Generates all possible allele combinations (allele names) within and between loci.
         
         Args:
-            allele_names (list): list with all allele types (max. 6)
+            allele_names (list): contains all allele names (max. 6)
         
         Returns:
-            all_combinations_list (list): contains all possible allele combinations
+            all_allele_combinations (list): contains all possible allele name combinations
         """
         # for samples with 5 different alleles
         if len(allele_names) == 5:
@@ -65,40 +69,40 @@ class ParseInput:
             first_nr_list = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
             second_nr_list = [1,2,3,4,5,2,3,4,5,3,4,5,4,5,5]
 
-        all_alleles_list = []
+        all_alleles_names = []
         for allele, seq in allele_names:
-           all_alleles_list += [allele]
+           all_alleles_names += [allele]
 
-        all_combinations_list = []
+        all_allele_combinations = []
         for i in range(len(first_nr_list)):
-            all_combinations_list += [[all_alleles_list[int(first_nr_list[i])], all_alleles_list[int(second_nr_list[i])]]]
+            all_allele_combinations += [[all_alleles_names[int(first_nr_list[i])], all_alleles_names[int(second_nr_list[i])]]]
         
-        return (all_combinations_list)
+        return (all_allele_combinations)
         
 class Read:
     """
-    
+    This class processes single read data but some functions can also process single sequence data other than reads.
+    Several checks are included (quality and artefacts), also mismatch and position information can be generated.
+
+
     Args:
-        read_seq (str):
-        read_qv (str):
-        read_aligned_seq (str):
-        allele_data (list):
+        read_seq (str): sequence, not in alignment, from read, read consensus or turn over region
+        read_aligned_seq (str): sequence in alignment, from read, read consensus or turn over region
+        allele_data (list): list of lists with all allele names and aligned sequences
     """
-    def __init__(self, read_seq, read_qv, read_aligned_seq, allele_data):
+    def __init__(self, read_seq, read_aligned_seq, allele_data):
         self.read_seq = read_seq
         self.read_length = len(read_seq)
-        self.read_qv = read_qv
         self.read_aligned_seq = read_aligned_seq
         self.allele_data = allele_data
-    
-    
+
     def check_alignment(self): 
         """
 
         Args:
             -
         Returns:
-            correct_alignment (bool):
+            correct_alignment (bool): True if sequences are correctly aligned, False if sequences are incorrecly aligned
         """
         # Check if alignment is correct
         
@@ -109,27 +113,31 @@ class Read:
         
         return correct_alignment
     
-    def apply_qv(self):
+    def apply_qv(self, read_qv):
         """
-        Checks nucleotide quality values, if lower than a given value, then the nuclotide is replaced by a 'N'
+        Checks nucleotide quality values, if lower than a given value (minimum_q_score), then the nucleotide is replaced by a 'N'
         
         Args:
-            -
+            read_qv (str): read quality values
         Returns:
-           read_checked_aligned_seq (str):
+            read_checked_aligned_seq (str): the updated aligned read sequence
         """
+
+        # Adjust here the minimum quality score 
+        minimum_q_score = 18
+
         quality_dict = {'!': 0, '"': 1, '#':2, '$':3, '%':4, '&':5, "'":6, '(':7, ')':8,\
         '*':9, '+':10, ',':11,'-':12, '.':13, '/':14, '0':15, '1':16, '2':17, '3':18,\
         '4':19, '5':20, '6':21, '7':22, '8':23, '9':24, ':':25, ';':26, '<':27, '=':28,\
         '>':29, '?':30, '@':31, 'A':32, 'B':33, 'C':34, 'D':35, 'E':36, 'F':37, 'G':38, 'H':39, 'I':40}
     
         read_checked_seq = '' 
-        for i, qual in enumerate(self.read_qv):
+        for i, qual in enumerate(read_qv):
             q_score = quality_dict[qual]
             nucleotide = self.read_seq[i]
-            if q_score < 18:
+            if q_score < minimum_q_score:
                 read_checked_seq += 'N'
-            if q_score >= 18:
+            if q_score >= minimum_q_score:
                 read_checked_seq += nucleotide
 
         # count the number of '-' in front of aligned read (left)
@@ -140,98 +148,113 @@ class Read:
         read_aligned_seq_wo_r = self.read_aligned_seq.rstrip('-')
         count_read_end = len(self.read_aligned_seq) - len(read_aligned_seq_wo_r)
 
-        read_checked_aligned_seq = ''
+        read_aligned_seq_checked = ''
         read_start_seen = False   
         gap_count = 0
         for i, char in enumerate(read_aligned_seq_wo_r):
             if char == '-':
-                read_checked_aligned_seq += char
+                read_aligned_seq_checked += char
             if char != '-' and read_start_seen == False:
                 read_start_seen = True
             if read_start_seen == True:
                 if char == '-':
                     gap_count += 1
                 if char != '-':
-                    read_checked_aligned_seq += read_checked_seq[i-count_read_start-gap_count]
+                    read_aligned_seq_checked += read_checked_seq[i-count_read_start-gap_count]
 
         # add '-' at the right
-        read_checked_aligned_seq = read_checked_aligned_seq + '-' * count_read_end
-        return read_checked_aligned_seq
+        read_aligned_seq_checked = read_aligned_seq_checked + '-' * count_read_end
+
+        return read_aligned_seq_checked
     
 
-    def check_read_artefacts(self, read_aligned_qv):
+    def check_read_artefacts(self, read_aligned_seq_checked):
         """" 
-        Check if read has artefect
-        Artefact definition: if all alleles have have a mismatch at the same position 
-        If artefact found, read nucleotide replaced by 'N'
-
+        Check if read has artefect type 1. If artefact is found then the read nucleotide is replaced by a 'N'
+        Artefact type  1 definition: if all alleles have have a mismatch at the same position, we assume that
+        the read nucleotide is incorrect (e.g. PCR artefact) not the allele nucleotide.
+        
         Args:
-            read_aligned_qv (str):
+            read_aligned_seq_checked (str): the updated aligned read sequence
         Returns:
-            read_aligned_fully_checked (str):
+            read_aligned_seq_fully_checked (str): the updated aligned read sequence after both checks
         """
 
-        read_seq = read_aligned_qv
-
-        # get the start of the read position (relative to the alleles) 
-        start_relative_read_position = []
-        start_relative_read_nucleotide = []
+        # get the start of the read position (based on the read in its alignment) 
+        start_absolute_read_position = []
+        start_absolute_read_nucleotide = []
         nr_of_switches = 0
-        nuc = read_aligned_qv[0]
-        for i, char in enumerate(read_aligned_qv):
+        nuc = read_aligned_seq_checked[0]
+        for i, char in enumerate(read_aligned_seq_checked):
             if nuc == '-' and nuc != char:
                 nr_of_switches += 1
-                start_relative_read_position += [i]
-                start_relative_read_nucleotide += [char]
+                start_absolute_read_position += [i]
+                start_absolute_read_nucleotide += [char]
             nuc = char
     
-        # get all read positions (relative to the alleles)
-        relative_read_position = []
-        relative_read_nucleotide = []
-        for i, char in enumerate(read_seq):
-            if i >= start_relative_read_position[0] and i <= start_relative_read_position[-1]:
-                relative_read_position += [i]
-                relative_read_nucleotide += [char]
-            if i >= start_relative_read_position[-1]+1 and char != '-':
-                relative_read_position += [i]
-                relative_read_nucleotide += [char]
+        # get all read positions (based on the read in its alignment)
+        absolute_read_position = []
+        absolute_read_nucleotide = []
+        for i, char in enumerate(read_aligned_seq_checked):
+            if i >= start_absolute_read_position[0] and i <= start_absolute_read_position[-1]:
+                absolute_read_position += [i]
+                absolute_read_nucleotide += [char]
+            if i >= start_absolute_read_position[-1]+1 and char != '-':
+                absolute_read_position += [i]
+                absolute_read_nucleotide += [char]
        
-        mismatch_track = self.__create_mismatch_track(self.allele_data, read_seq, relative_read_position, relative_read_nucleotide)
+        mismatch_track = self.__create_mismatch_track(read_aligned_seq_checked, absolute_read_position, absolute_read_nucleotide)
 
         # if a nucleotide in the read is considered as artefact (5 in mismatch track) then it is replaced by 'N'
-        read_aligned_fully_checked = ''
-        for i, nuc in enumerate(read_seq):
+        read_aligned_seq_fully_checked = ''
+        for i, nuc in enumerate(read_aligned_seq_checked):
             try:
                 mismatch_char = int(mismatch_track[i])
             except:
                 mismatch_char = mismatch_track[i]
-            if mismatch_char == 5:
-                read_aligned_fully_checked += 'N'
-            if mismatch_char != 5:
-                read_aligned_fully_checked += nuc
-        return read_aligned_fully_checked
+            number_of_alleles = len(self.allele_data)
+            if number_of_alleles == 5:
+                if mismatch_char == 5:
+                    read_aligned_seq_fully_checked += 'N'
+                if mismatch_char != 5:
+                    read_aligned_seq_fully_checked += nuc
+            elif number_of_alleles == 6:
+                if mismatch_char == 6:
+                    read_aligned_seq_fully_checked += 'N'
+                if mismatch_char != 6:
+                    read_aligned_seq_fully_checked += nuc
+            else:
+                print ('The number of alleles is incorrect!')
+                quit()
 
-    @staticmethod
-    def __create_mismatch_track(allele_data, read_seq, relative_read_position, relative_read_nucleotide):
+        return read_aligned_seq_fully_checked
+
+    def __create_mismatch_track(self, read_aligned_seq_checked, absolute_read_position, absolute_read_nucleotide):
         """
+        Checks for each read position if alleles have mismatches (substitution). If a mismatch is found, value 1 is added.
+        If the input data contains 6 alleles, then this number can be max. 6 for each read position.
         
         
         Args:
-            allele_data
-            read_seq
-            relative_read_position
-            relative_read_nucleotide
+            read_aligned_seq_checked (str): the updated aligned read sequence
+            absolute_read_position (list): contains all positions (int) of the read (based on its alignment)
+            absolute_read_nucleotide (list): contains all read nucleotides which corresponds to the absolute read positions. 
         Returns:
-            mismatch_track:
+            mismatch_track (str): contains the number of mismatches for all alleles per position
         """
-        # create a mismatch track string, for each mismatch in the allele '1' is added, up to 5  (where all alleles have mismatches)
-        mismatch_track = '-' * len(read_seq)
 
-        for allele, seq in allele_data:
+        # create a mismatch track string, for each mismatch in the allele '1' is added, up to 5  (where all alleles have mismatches)
+        mismatch_track = '-' * len(read_aligned_seq_checked)
+
+        for allele, seq in self.allele_data:
             seq_string = seq
             for i, chari in enumerate(seq_string):
-                if i in relative_read_position:
-                    read_nuc = relative_read_nucleotide[i-min(relative_read_position)] 
+                if i in absolute_read_position:
+                    read_nuc = absolute_read_nucleotide[i-min(absolute_read_position)] 
+                    if chari != read_nuc and read_nuc != '-' and read_nuc != 'N' and chari != '-' and  mismatch_track[i] == '5':
+                        left_mismatch_track = mismatch_track[:i]
+                        right_mismatch_track = mismatch_track[i+1:]
+                        mismatch_track = left_mismatch_track + '6' + right_mismatch_track
                     if chari != read_nuc and read_nuc != '-' and read_nuc != 'N' and chari != '-' and  mismatch_track[i] == '4':
                         left_mismatch_track = mismatch_track[:i]
                         right_mismatch_track = mismatch_track[i+1:]
@@ -257,41 +280,37 @@ class Read:
 
     def get_mismatches(self, read_aligned_fully_checked):
         """
-        Check for mismatches read vs all alleles (substitutions, insertions and deletions)
+        Gets all allele mismatches (substitutions, insertions and deletions) based on the read.
         
         Args:
-            allele_data: list, with all alleles and sequences
-            read_seq: str, read sequence
+            read_aligned_seq_fully_checked (str): the updated aligned read sequence after both checks
         Returns:
-           mismatch_dict (dict):
-           extended_mismatch_dict (dict):
+           mismatch_dict (dict): contains allele names and number of total mismatches
+           extended_mismatch_dict (dict): contains allele names and number of substitutions, insertions and deletions
         """
-        read_seq = read_aligned_fully_checked
 
-        # get the read position (relative to the alleles) 
-        start_relative_read_position = []
-        start_relative_read_nucleotide = []
+        # get the start of the read position (based on the read in its alignment) 
+        start_absolute_read_position = []
         nr_of_switches = 0
         nuc = read_aligned_fully_checked[0]
         for i, char in enumerate(read_aligned_fully_checked):
             if nuc == '-' and nuc != char:
                 nr_of_switches += 1
-                start_relative_read_position += [i]
-                start_relative_read_nucleotide += [char]
+                start_absolute_read_position += [i]
             nuc = char
 
-        # get the allele position (relative to the alleles), to check whether the read starts in front of the allele
-        deletion_correction_dict = self.__check_read_start(start_relative_read_position, read_aligned_fully_checked)
+        # If read is aligned in front of the allele, the mismatches are ignored (they will be extracted from deletions). 
+        deletion_correction_dict = self.__check_read_start(start_absolute_read_position, read_aligned_fully_checked)
 
-        relative_read_position = []
-        relative_read_nucleotide = []
-        for i, char in enumerate(read_seq):
-            if i >= start_relative_read_position[0] and i <= start_relative_read_position[-1]:
-                relative_read_position += [i]
-                relative_read_nucleotide += [char]
-            if i >= start_relative_read_position[-1]+1 and char != '-':
-                relative_read_position += [i]
-                relative_read_nucleotide += [char]
+        absolute_read_position = []
+        absolute_read_nucleotide = []
+        for i, char in enumerate(read_aligned_fully_checked):
+            if i >= start_absolute_read_position[0] and i <= start_absolute_read_position[-1]:
+                absolute_read_position += [i]
+                absolute_read_nucleotide += [char]
+            if i >= start_absolute_read_position[-1]+1 and char != '-':
+                absolute_read_position += [i]
+                absolute_read_nucleotide += [char]
 
         extended_mismatch_dict = {}
         mismatch_dict = {}
@@ -301,8 +320,8 @@ class Read:
             deletions = int(deletion_correction_dict[allele])
             mismatches = 0
             for i, chari in enumerate(seq_string):
-                if i in relative_read_position:
-                    read_nuc = relative_read_nucleotide[i-min(relative_read_position)]
+                if i in absolute_read_position:
+                    read_nuc = absolute_read_nucleotide[i-min(absolute_read_position)]
                     if chari != read_nuc:
                         if read_nuc != '-' and read_nuc != '*' and read_nuc != 'N' and chari != '-': 
                             substitutions += 1    
@@ -313,36 +332,40 @@ class Read:
                         mismatches = substitutions + insertions + deletions
             mismatch_dict[allele] = [mismatches]
             extended_mismatch_dict[allele] = [substitutions, insertions, deletions, mismatches]
+
         return (mismatch_dict, extended_mismatch_dict)
   
 
 
-    def __check_read_start(self, start_relative_read_position, read_aligned_fully_checked):
+    def __check_read_start(self, start_absolute_read_position, read_aligned_fully_checked):
         """
+        Checks if aligned read starts in front of allele (does not occur often). If so, then the number of nucleotides
+        which are aligned in front of the allele are counted and stored in a dictionary.  
        
         Args:
-            start_relative_read_position (list):
-            read_aligned_fully_checked (str):
+            start_absolute_read_position (list): contains absolute start position of the read and the start positions after
+            insertions (if the read has any).
+            read_aligned_seq_fully_checked (str): the updated aligned read sequence after both checks
         Returns:
-            deletion_correction_dict (dict):                    
+            deletion_correction_dict (dict): contains allele names and number of nucleotides which are aligned in front 
+            of the allele
         """
+
         deletion_correction_dict = {} # if reads starts in front of allele
         for allele, seq_string in self.allele_data: 
             start_allele_post = 0
             if seq_string.startswith('-'):
-                start_relative_allele_position = []
-                start_relative_allele_nucleotide = []
+                start_absolute_allele_position = []
                 nuc = seq_string[0]
                 nr_of_switches = 0
                 for i, char in enumerate(seq_string):
                     if nuc == '-' and nuc != char:
                         nr_of_switches += 1
-                        start_relative_allele_position += [i]
-                        start_relative_allele_nucleotide += [char]
+                        start_absolute_allele_position += [i]
                     nuc = char
-                start_allele_post = start_relative_allele_position[0]
-                if start_allele_post > start_relative_read_position[0]:
-                    deletion_correction = start_relative_read_position[0] - start_allele_post
+                start_allele_post = start_absolute_allele_position[0]
+                if start_allele_post > start_absolute_read_position[0]:
+                    deletion_correction = start_absolute_read_position[0] - start_allele_post
                     deletion_correction_dict[allele] = deletion_correction
                 else: 
                     deletion_correction = 0
@@ -350,7 +373,7 @@ class Read:
             else: 
                 deletion_correction = 0
                 deletion_correction_dict[allele] = deletion_correction
-            count_read_insertion_for_deletion_correction = read_aligned_fully_checked[start_relative_read_position[0]:start_allele_post]
+            count_read_insertion_for_deletion_correction = read_aligned_fully_checked[start_absolute_read_position[0]:start_allele_post]
             read_inserts = count_read_insertion_for_deletion_correction.count('-')
             deletion_correction_dict[allele] += read_inserts
 
@@ -360,22 +383,19 @@ class Read:
     def classmethod_for_non_read(cls, aligned_sequence, allele_data):
         """
         Classmethod that generates data for the read consensus and turnover region (both in alignment) as input for the constructor. 
-        The sequence (read_seq) is created  without the alignment. The read_qv is an empty string since the read_consensus and turnover
-        region do not have quality values.
+        The sequence (read_seq) is created  without its alignment. 
         
         Args:
-            aligned_sequence (str):
-            allele_data (list):
+            aligned_sequence (str): read consensus or turn over region sequence, in its alignment
+            allele_data (list): list of lists with all allele names and aligned sequences
         Returns:
-            read_seq (str):
-            read_qv (str): Empty string
-            aligned_sequence (str):
-            allele_data (list):
+            read_seq (str): sequence, not in alignment, read consensus or turn over region
+            read_aligned_seq (str): sequence in alignment, read consensus or turn over region
+            allele_data (list): list of lists with all allele names and aligned sequences
         """
         read_seq = aligned_sequence.lstrip('-').rstrip('-')
-        read_qv = ''
 
-        return cls(read_seq, read_qv, aligned_sequence, allele_data)
+        return cls(read_seq, aligned_sequence, allele_data)
     
     def print_mismatches(self, read_type, extended_mismatch_dict):
         """
@@ -386,7 +406,6 @@ class Read:
             extended_mismatch_dict (dict): Contains the number of SNP substitutions, insertions, deletions and total number of mismatches
         Returns:
            -
-                    
         """
         print ('\n\nRead info', read_type)
         print ('Length: \t\t', self.read_length)
@@ -1273,7 +1292,7 @@ def main():
             input_file = file_object.read()
             
     all_data, allele_data = ParseInput.collect_all_data(input_file)
-    all_combinations_list = ParseInput.get_allele_combinations(allele_data)
+    all_allele_combinations = ParseInput.get_allele_combinations(allele_data)
 
     incorrect_aligned_reads = 0
     rejected_read_count = 0
@@ -1298,17 +1317,17 @@ def main():
         
         allele_data = read_info[4:]
         # Perform checks for read 1
-        R1_read = Read(read1_seq, read1_qv, read1_aligned_seq, allele_data)
+        R1_read = Read(read1_seq, read1_aligned_seq, allele_data)
         check_alignment = R1_read.check_alignment()
         if check_alignment == False:
             incorrect_aligned_reads += 1
             continue        
-        R1_alignment_after_first_check = R1_read.apply_qv()
+        R1_alignment_after_first_check = R1_read.apply_qv(read1_qv)
         R1_alignment_after_second_check = R1_read.check_read_artefacts(R1_alignment_after_first_check)
 
         # Perform checks for read 2
-        R2_read = Read(read2_seq, read2_qv, read2_aligned_seq, allele_data)
-        R2_alignment_after_first_check = R2_read.apply_qv()
+        R2_read = Read(read2_seq, read2_aligned_seq, allele_data)
+        R2_alignment_after_first_check = R2_read.apply_qv(read2_qv)
         R2_alignment_after_second_check = R2_read.check_read_artefacts(R2_alignment_after_first_check)
 
         # Check if read pair met the requirements
@@ -1405,7 +1424,7 @@ def main():
         ###########
 
         more_switches = True
-        for allele_combo in all_combinations_list:
+        for allele_combo in all_allele_combinations:
             allele1 = allele_combo[0]
             allele2 = allele_combo[1]
          
