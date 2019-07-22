@@ -231,8 +231,7 @@ class Read:
                 if mismatch_char != 6:
                     read_aligned_seq_fully_checked += nuc
             else:
-                print ('The number of alleles is incorrect!')
-                quit()
+                raise ValueError ('The number of alleles is incorrect!')
 
         return read_aligned_seq_fully_checked
 
@@ -245,7 +244,7 @@ class Read:
         Args:
             read_aligned_seq_checked (str): the updated aligned read sequence
             absolute_read_position (list): contains all positions (int) of the read (based on its alignment)
-            absolute_read_nucleotide (list): contains all read nucleotides which corresponds to the absolute read positions. 
+            absolute_read_nucleotide (list): contains all read nucleotides which corresponds to the absolute read positions
         Returns:
             mismatch_track (str): contains the number of mismatches for all alleles per position
         """
