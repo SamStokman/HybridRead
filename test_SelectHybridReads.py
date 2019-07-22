@@ -163,6 +163,8 @@ class TestRead(unittest.TestCase):
                                                   'allele_C2': [0,2,5,7]})
 
     def test_classmethod_for_non_read(cls):
+
+        # Test case 1: normal
         single_sequence_in_alignment = '---TTTTT---'
         single_allele_in_alignment = '-----CCC-----'
        
@@ -171,6 +173,51 @@ class TestRead(unittest.TestCase):
         cls.assertEqual(test_classmethod_result.read_aligned_seq, '---TTTTT---')
         cls.assertEqual(test_classmethod_result.allele_data, '-----CCC-----')
 
+    def test_get_relative_position(self):
+
+        # Test case 1: normal
+        Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, self.allele_data1)
+        self.assertDictEqual(Read_test.get_relative_position(), {'allele_A1': [0,1,2,3,4],
+                                                                 'allele_A2': [0,1,2,3,4],
+                                                                 'allele_B1': [0,1,2,3,4],
+                                                                 'allele_B2': [0,1,2,3,4],
+                                                                 'allele_C1': [0,1,2,3,4],
+                                                                 'allele_C2': [0,1,2,3,4]})
+        # Test case 2: random
+
+        self.read_seq = 'CCCCC'
+        self.read_aligned_seq = '---CC--CCC---'
+        self.allele_data1 = [['allele_A1','-------CCC---'],
+                             ['allele_A2','-CCCC--CCC---'],
+                             ['allele_B1','-----CCCCCCCC'],
+                             ['allele_B2','---TT--TTT---'],
+                             ['allele_C1','---CCCCCCC---'],
+                             ['allele_C2','C-C-C-C-C-C-C']]
+
+        Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, self.allele_data1)
+        self.assertDictEqual(Read_test.get_relative_position(), {'allele_A1': [0,1,2],
+                                                                 'allele_A2': [2,3,4,5,6],
+                                                                 'allele_B1': [2,3,4],
+                                                                 'allele_B2': [0,1,2,3,4],
+                                                                 'allele_C1': [0,1,2,3,4,5,6],
+                                                                 'allele_C2': [2,3,4]})
+        # Test case 3: read starts in front of allele
+        self.read_seq = 'CCCCCC'
+        read_aligned_seq = 'CCCCCC-------'
+        allele_data = [['allele_A1','--CCC--------'],
+                       ['allele_A2','--CC-C-------'],
+                       ['allele_B1','-CCCCCC------'],
+                       ['allele_B2','C-C-C-C-C-C-C'],
+                       ['allele_C1','----------C--'],
+                       ['allele_C2','--CCC--------']]
+
+        Read_test = SelectHybridReads.Read(self.read_seq, read_aligned_seq, allele_data)
+        self.assertDictEqual(Read_test.get_relative_position(), {'allele_A1': [0,1,2],
+                                                                 'allele_A2': [0,1,2],
+                                                                 'allele_B1': [0,1,2,3,4],
+                                                                 'allele_B2': [0,1,2],
+                                                                 'allele_C1': [],
+                                                                 'allele_C2': [0,1,2]})
 
 if __name__ == '__main__':
     unittest.main()

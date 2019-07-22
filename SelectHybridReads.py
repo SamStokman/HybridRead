@@ -36,7 +36,7 @@ class ParseInput:
 
         all_data = []
         input_file = input_file.split('$$$')
-        for per_read_pair_data in input_file[1:3]:   # 1:-1
+        for per_read_pair_data in input_file[1:2]:   # 1:-1
             temp_collect_list = []
             read_data = per_read_pair_data.split('\n')
             for line in read_data:
@@ -408,8 +408,8 @@ class Read:
         Print type of read, read length and the number mismatches
         
         Args:
-            read_type (str): Discribes read type; First read, Second read or Read consensus
-            extended_mismatch_dict (dict): Contains the number of SNP substitutions, insertions, deletions and total number of mismatches
+            read_type (str): discribes read type; First read, Second read or Read consensus
+            extended_mismatch_dict (dict): contains the number of SNP substitutions, insertions, deletions and total number of mismatches
         Returns:
            -
         """
@@ -423,7 +423,8 @@ class Read:
     def get_relative_position(self):
         """
         Determines all positions of a given sequence (read, read consensus or turnover region) per nucleotide relative to 
-        the allele. All alleles are included.
+        the allele. All alleles are included. If the sequence starts in front of the allele (does not occur often), then those
+        positions are ignored, they do not exist. Same goes for gaps in alleles (sequence has nucleotide and allele does not).
         
         Args:
             -            
@@ -437,20 +438,27 @@ class Read:
             allele_seq_wo_left = allele_seq.lstrip('-')
             left_difference = len(allele_seq) - len(allele_seq_wo_left)
             allele_seq_wo_right = allele_seq.rstrip('-')
-            sequence_seq_wo_rl = self.read_aligned_seq[left_difference:len(allele_seq_wo_right)]
+
+            read_seq_wo_rl = self.read_aligned_seq[left_difference:len(allele_seq_wo_right)]
             allele_seq_wo_rl = allele_seq.strip('-')
 
-            # Remove '-' right from the read
-            sequence_read = sequence_seq_wo_rl.rstrip('-')
+            # Remove '-' right from the read, example sequence read: '--------------CCCCC'
+            sequence_read = read_seq_wo_rl.rstrip('-')
 
             read_start_seen = False
             deletion_count_allele_to_read_start = 0
+            deletion_count_activated = False
+            #TODO: now the allele can have max. 2 gaps in front of read start
 
             for i, char in enumerate(sequence_read):
-                if char == '-' and read_start_seen ==  False:
-                    if allele_seq_wo_rl[i] == '-':
+                if deletion_count_activated == True and char == '-' and read_start_seen ==  False:
+                    if allele_seq_wo_rl[i] == '-':  # if allele has gap in front of read start, for second gap
                         deletion_count_allele_to_read_start += 1
-                if char != '-':
+                if char == '-' and read_start_seen ==  False and deletion_count_activated == False:
+                    if allele_seq_wo_rl[i] == '-':  # if allele has gap in front of read start, for first gap
+                        deletion_count_allele_to_read_start += 1
+                        deletion_count_activated = True
+                if char != '-' and deletion_count_activated == False:
                     read_start_seen = True
 
             read_start_seen = False
@@ -466,12 +474,12 @@ class Read:
                     read_position += [pos]
                 if len(read_position) != 0:
                     pos = read_position[-1] + 1
-            read_pos_dict[allele] = [read_position]
+            read_pos_dict[allele] = read_position
 
         # get position if turnover region has a length of 0 and the allele has '-' as nucleotide
         allele_name =  self.allele_data[0][0]
 
-        if 'K' in self.read_aligned_seq or 'Z' in self.read_aligned_seq and read_pos_dict[allele_name] == [[]]:
+        if 'K' in self.read_aligned_seq or 'Z' in self.read_aligned_seq and read_pos_dict[allele_name] == []:
             read_pos_dict = self.__get_special_case_pos(read_pos_dict, allele_name)
 
         return read_pos_dict
@@ -521,7 +529,7 @@ class Read:
                     read_position = [pos]
 
             del read_pos_dict[allele_name]
-            read_pos_dict[allele_name] = [read_position]
+            read_pos_dict[allele_name] = read_position
 
         return (read_pos_dict)
 
@@ -942,20 +950,20 @@ class GetOneSwitchData():
         
         # Get all start and stop positions from best allele matches
         positions_list_allele1_read1 = read1_pos_dict[self.allele1]
-        start_pos_allele1_read1 = positions_list_allele1_read1[0][0]
-        end_pos_allele1_read1 = positions_list_allele1_read1[0][-1]
+        start_pos_allele1_read1 = positions_list_allele1_read1[0]
+        end_pos_allele1_read1 = positions_list_allele1_read1[-1]
 
         positions_list_allele2_read1  = read1_pos_dict[self.allele2]
-        start_pos_allele2_read1 = positions_list_allele2_read1[0][0]
-        end_pos_allele2_read1 = positions_list_allele2_read1[0][-1] 
+        start_pos_allele2_read1 = positions_list_allele2_read1[0]
+        end_pos_allele2_read1 = positions_list_allele2_read1[-1] 
 
         positions_list_allele1_read2 = read2_pos_dict[self.allele1]
-        start_pos_allele1_read2 = positions_list_allele1_read2[0][0]
-        end_pos_allele1_read2 = positions_list_allele1_read2[0][-1] 
+        start_pos_allele1_read2 = positions_list_allele1_read2[0]
+        end_pos_allele1_read2 = positions_list_allele1_read2[-1] 
 
         positions_list_allele2_read2 = read2_pos_dict[self.allele2]
-        start_pos_allele2_read2 = positions_list_allele2_read2[0][0]
-        end_pos_allele2_read2 = positions_list_allele2_read2[0][-1] 
+        start_pos_allele2_read2 = positions_list_allele2_read2[0]
+        end_pos_allele2_read2 = positions_list_allele2_read2[-1] 
 
         position_read1_allele1 = str(start_pos_allele1_read1) + '-' +  str(end_pos_allele1_read1)
         position_read2_allele1 = str(start_pos_allele1_read2) + '-' +  str(end_pos_allele1_read2)
@@ -1063,21 +1071,21 @@ class GetOneSwitchData():
         allele2 = self.allele2
         # Get all start and stop positions from best allele matches (TO regions)
         # if to region 1 has 0 nucleotides
-        if TO_allele1_dict[allele1] == [[]]:
+        if TO_allele1_dict[allele1] == []:
             start_pos_allele1_TO_region = 0
             end_pos_allele1_TO_region = 0
-        if TO_allele1_dict[allele1] != [[]]:
+        if TO_allele1_dict[allele1] != []:
             positions_list_allele1_TO_region = TO_allele1_dict[allele1]
-            start_pos_allele1_TO_region = positions_list_allele1_TO_region[0][0]
-            end_pos_allele1_TO_region = positions_list_allele1_TO_region[0][-1]
+            start_pos_allele1_TO_region = positions_list_allele1_TO_region[0]
+            end_pos_allele1_TO_region = positions_list_allele1_TO_region[-1]
         # if to region 2 has 0 nucleotides
-        if TO_allele2_dict[allele2] == [[]]:
+        if TO_allele2_dict[allele2] == []:
             start_pos_allele2_TO_region = 0
             end_pos_allele2_TO_region = 0
-        if TO_allele2_dict[allele2] != [[]]:
+        if TO_allele2_dict[allele2] != []:
             positions_list_allele2_TO_region  = TO_allele2_dict[allele2]
-            start_pos_allele2_TO_region = positions_list_allele2_TO_region[0][0]
-            end_pos_allele2_TO_region = positions_list_allele2_TO_region[0][-1] 
+            start_pos_allele2_TO_region = positions_list_allele2_TO_region[0]
+            end_pos_allele2_TO_region = positions_list_allele2_TO_region[-1] 
 
         # delete deletions (just keep the sequence), and K, since it is a non existing TO sequence (lenght 0)
         turn_over_region1 = turn_over_region1_for_pos.replace('K','-').replace('-','')
@@ -1474,7 +1482,6 @@ def main():
                 per_allele_info.print_1_switch_alleles()
                 read1_pos_dict = R1_read.get_relative_position()
                 read2_pos_dict = R2_read.get_relative_position()
-                
                 final_to_region = GetOneSwitchData(allele1, allele2)
 
                 pos_read1_allele1, pos_read2_allele1, pos_read1_allele2, pos_read2_allele2 = final_to_region.get_read_position(read1_pos_dict, read2_pos_dict)
