@@ -416,13 +416,13 @@ class Read:
 
     def get_relative_position(self):
         """
-        Determines the (consensus) read position for each allele and returns it in 
-        a dict.        
+        Determines all positions of a given sequence (read, read consensus or turnover region) per nucleotide relative to 
+        the allele. All alleles are included.
         
         Args:
             -            
         Returns:
-            read_pos_dict (dict):  
+            read_pos_dict (dict): contains allele names and all positions of the given sequence relative to the alleles
         """
         read_pos_dict = {}
         for allele, allele_seq in self.allele_data:
@@ -474,11 +474,11 @@ class Read:
     def __get_special_case_pos(self, read_pos_dict, allele_name):
         """
         If turnover region has a length of 0 (indicated by a 'K') or 1  (indicated by a 'Z') and the allele 
-        has '-' as nucleotide. Then we still need the correct position
+        has '-' as nucleotide. This function gets the correct position
         
         Args:
-            read_pos_dict (dict):
-            allele_name (str):
+            read_pos_dict (dict): contains allele names and all positions of the given sequence relative to the alleles
+            allele_name (str): name of allele
         Returns:
             read_pos_dict (dict): an updated version of original read_pos_dict
         """
@@ -522,14 +522,14 @@ class Read:
         
 class ReadPair():
     """
-    
+     
     Args:
-        read1_aligned_checked (str):
-        read2_aligned_checked (str):
-        read1_seq (str):
-        read2_seq (str):
-        min_read_length (int):
-        N_quantity (int):
+        read1_aligned_checked (str): sequence read 1, in alignement
+        read2_aligned_checked (str): sequence read 2, in alignement
+        read1_seq (str): sequence read 1
+        read2_seq (str): sequence read 2
+        min_read_length (int): the minimum read length allowed
+        N_quantity (int): the maximum number of N's allowed per read
     """
     
     min_read_length = 0
@@ -544,13 +544,15 @@ class ReadPair():
         
     def check_read_pair(self):
         """
-        The minimum read length of the original reads and the number of allowed N's per read can be determined
+        Checks the minimum read length of the original reads and the number N's per aligned and checked read. Returns a 
+        bool that indicates or the reads of a read pair met the requirements or not.
         
         Args:
             -
             
         Returns:
-            approve_reads (bool):
+            approve_reads (bool): True if reads are longer than set value and the number of N's is lower than set value.
+            False if one or both reads do not met the set values.
         """
 
         approve_reads = True
@@ -573,18 +575,17 @@ class ReadPair():
    
     def create_read_consensus(self):
         """
-        This function combines the two paired-end reads into a 'read consensus'
-        if the reads do not overlap (and thus have a gap) the empty nucleotide between the 
-        reads are replaced by '*'. This to distinguish between real read deletions and
-        the empty space between the reads. For overlapping reads: tf the reads have different nucleotides 
-        at the same position then it is replaced by a 'N'. If 1 read has a 'N' and the other one a 
-        nucleotide, the nucleotide is used.
+        This function combines the two paired-end reads into a 'read consensus' if the reads do not 
+        overlap (and thus have a gap) the empty nucleotide between the reads are replaced by '*'. 
+        This to distinguish between real read deletions and the empty space between the reads. 
+        For overlapping reads: if the reads have different nucleotides at the same position then it 
+        is replaced by a 'N'. If 1 read has a 'N' and the other one a nucleotide, the nucleotide is used.
         
         Args:
             -
             
         Returns:
-            read_consensus (str): 
+            read_consensus (str): contains read pair sequences combined, '*' indicates the gap between the reads
         """
         read1_seq = self.read1_aligned_checked
         read2_seq = self.read2_aligned_checked
@@ -640,10 +641,11 @@ class ReadPair():
 class CheckAlleleCombination():
     """
     Args:
-        read_consensus (str):
-        allele_combo (list): contains the two allele names
-        allele_data (list):
+        read_consensus (str): contains read pair sequences combined, '*' indicates the gap between the reads
+        allele_combo (list): allele names of given combination
+        allele_data (list): list of lists with all allele names and aligned sequences
     """
+
     
     def __init__(self, read_consensus, allele_combo, allele_data):
         self.read_consensus = read_consensus
@@ -654,55 +656,50 @@ class CheckAlleleCombination():
         self.indicator_string = ''
         self.number_of_artefacts = 0
 
-    
     def create_indicator_string(self):
         """
+        Here, the indicator string is created based on the alleles of the given allele combination. The read 
+        consensus is used as reference, mismatches for the first allele are indicated by a 'X' and mismatches for
+        the second allele are indicated by a 'Y'. The order does not matter. The indicator strings are first 
+        created separately and then they are combined. The allele_seq_list is needed in a later stage.
         
         Args:
             -
         
         Returns:
-            allele_seq_list (list):
+            allele_seq_list (list): contains allele sequences in alignment for given allele combination
         """
 
-        read_consensus = self.read_consensus
-        allele_combo = self.allele_combo
-        allele_info = self.allele_data
-
-        allele_match_list = allele_combo
-
-        # Create a dict with only the allele matches with the lowest number of mismatches. The sequences now contain '-' for matches and 'X' or 'Y' for a mismatch (mismatch indicator sequences).
-
+        # Create a dict with only the given allele combination. The mismatch indicator string contains '-' for matches and 'X' or 'Y' for a mismatches.
         turn_seq_list = []
         allele_seq_list = []
         mismatch_char = 'X'
-   
-        start_consensus = read_consensus.rstrip('-').count('-') # start read pos (absolute)
-        end_consensus = len(read_consensus.rstrip('-'))  # end read pos (absolute)
+        start_consensus = self.read_consensus.rstrip('-').count('-') # start read pos (absolute)
+        end_consensus = len(self.read_consensus.rstrip('-'))  # end read pos (absolute)
 
-        for allele, seq_string in allele_info:
+        for allele, seq_string in self.allele_data:
             mismatches = 0
             seq_string_temp = ''
             turn_over_seq_temp = ''
 
-            if allele in allele_match_list:
+            if allele in self.allele_combo:
                 allele_seq_list += [seq_string]
-            if allele in allele_match_list:
+            if allele in self.allele_combo:
                 for i, chari in enumerate(seq_string):
-                    if chari != read_consensus[i]:
-                        if read_consensus[i] != '-' and chari != '-' and read_consensus[i] != '*' and read_consensus[i] != 'N':
+                    if chari != self.read_consensus[i]:
+                        if self.read_consensus[i] != '-' and chari != '-' and self.read_consensus[i] != '*' and self.read_consensus[i] != 'N':
                             mismatches += 1    
                             turn_over_seq_temp += mismatch_char
-                        if read_consensus[i] == '-' and chari != '-':  
+                        if self.read_consensus[i] == '-' and chari != '-':  
                             if i < start_consensus or i >= end_consensus: # nucleotide in front of and after reads
                                 turn_over_seq_temp += '-'
                             if i >= start_consensus and i < end_consensus:  # allele insertion
                                 turn_over_seq_temp += mismatch_char
-                        if read_consensus[i] != '-' and chari == '-' and read_consensus[i] != '*' and read_consensus[i] != 'N':   # allele deletion
+                        if self.read_consensus[i] != '-' and chari == '-' and self.read_consensus[i] != '*' and self.read_consensus[i] != 'N':   # allele deletion
                             turn_over_seq_temp += mismatch_char
-                        if read_consensus[i] == '*' or read_consensus[i] == 'N':
+                        if self.read_consensus[i] == '*' or self.read_consensus[i] == 'N':
                             turn_over_seq_temp += '-'
-                    if chari == read_consensus[i]: 
+                    if chari == self.read_consensus[i]: 
                         seq_string_temp += chari
                         turn_over_seq_temp += '-'
                 mismatch_char = 'Y'
@@ -731,56 +728,61 @@ class CheckAlleleCombination():
     
     def check_indicative_SNPs(self):
         """
-        check if alleles have enough indicative mismatches (at least 2 per allele)
+        Checks if alleles have enough indicative mismatches, based on the mismatch indicator string. 
+        At least 2 mismatches per allele are required.
         
         Args:
             -
         
         Returns:
-            accept_combo (bool):
+            accept_combo (bool): True if the mismatch indicator string contains at least 2 'X' and at least 2 
+            'Y' mismatches. False if not, the allele combination has not enough indicative mismatches.
         """
+
         accept_combo = True
         
-        mismatch_indicator_string = self.indicator_string
-        if mismatch_indicator_string.count('X') < 2 or mismatch_indicator_string.count('Y') < 2:
+        if self.indicator_string.count('X') < 2 or self.indicator_string.count('Y') < 2:
             accept_combo = False
 
         return accept_combo
 
     def check_mutual_SNPs(self):
         """
-        check if alleles do not have too many mutual mismatches (max. 2)
+        Checks if alleles do not have too many mutual mismatches (max. 2). If both alleles have a mismatch at
+        the same position then we assume that the read has an artefact. But this is only allowed twice.
                 
         Args:
             -
         
         Returns:
-            accept_combo (bool):
+            accept_combo (bool): True if alleles have maximum 2 mutual mismatches, False if alleles
+            contain more mutual mismatches.
         """
         accept_combo = True
-        mismatch_indicator_string = self.indicator_string
-        self.number_of_artefacts += mismatch_indicator_string.count('M') 
 
-        if mismatch_indicator_string.count('M') > 2:
+        self.number_of_artefacts += self.indicator_string.count('M') 
+        if self.indicator_string.count('M') > 2:
             accept_combo = False
 
         return accept_combo
         
     def check_alternately_SNPs(self):
         """
-        check if alleles do not have too many alternately [XYX or YXY] mismatches (max. 2)
+        Checks if alleles do not have too many alternately mismatches (max. 2). An alternately mismatch is a single
+        mismatch of one allele between 2 mismatches of the other allele. 'XYX' or 'YXY' in the indicator string.
                 
         Args:
             -
         
         Returns:
-            count_indicator_list (list):
-            number_of_artefacts (int):
+            count_indicator_list (list): contains ascending values (int), starting from 1, each new start
+            indicates a switch for 'X' to 'Y' or vice versa. Two 1's next to each other indicate an
+            alternately mismatch.  
+            number_of_artefacts (int): total number of artefacts (caused by mutual or alternately SNPs)
         """
-        mismatch_indicator_string = self.indicator_string
 
         # replace 'M' for '-'  if the alleles have a mutual mismatch, it is ignored and it is regarded as a read artefact
-        mismatch_indicator_string = mismatch_indicator_string.replace('M', '-')
+        mismatch_indicator_string = self.indicator_string.replace('M', '-')
 
         # to check for XYX situations
         only_mismatch_indicator_chars = mismatch_indicator_string.replace('-', '')
@@ -805,25 +807,29 @@ class CheckAlleleCombination():
                 if number == 1 and next_number == 1:
                     pcr_artefact += 1
         self.number_of_artefacts += pcr_artefact
+        number_of_artefacts = self.number_of_artefacts
+
         # check for allele artefact, XYX or YXY (max. 2) 
-        if pcr_artefact >= 3:
+        if pcr_artefact > 2:
             count_indicator_list = None
 
-        return count_indicator_list, self.number_of_artefacts
+        return count_indicator_list, number_of_artefacts
         
     def update_indicator_string(self, count_indicator_list):
         """
-        Remove alternately artefacts
+        Here the mutual and alternately mismatches are removed (if there are less then 5) and the mismatch indicator string
+        is updated.
         
         Args:
-            count_indicator_list (list): 
-            
+            count_indicator_list (list): contains ascending values (int), starting from 1, each new start
+            indicates a switch for 'X' to 'Y' or vice versa. Two 1's next to each other indicate an
+            alternately mismatch. 
         Returns:
-            final_indicator_string (str):          
+            final_indicator_string (str): an updated version of the indicator string without mutual and alternately
+            mismatches.
         """
-        mismatch_indicator_string = self.indicator_string
-        mismatch_indicator_string = mismatch_indicator_string.replace('M', '-')
-        
+
+        mismatch_indicator_string = self.indicator_string.replace('M', '-')
 
         indicator_combo_str_wo_artefacts = ''
         only_mismatch_indicator_chars = mismatch_indicator_string.replace('-', '')
@@ -853,14 +859,17 @@ class CheckAlleleCombination():
         
     def get_switches(self, final_indicator_string):
         """
+        Determines the number of switches based on the indicator string. A switch is a shift from an 'X' to an 'Y' or
+        vice versa. The ideal situation results in 1 switch.
         
         Args:
-            final_indicator_string (str):
+            final_indicator_string (str): an updated version of the indicator string without mutual and alternately
+            mismatches.
         
         Returns:
-            nr_of_switches (int):
-            start_turn_pos (int):
-            end_turn_pos (int):
+            nr_of_switches (int): The number of switches from 'X' to 'Y' or vice versa
+            start_turn_pos (int): absolute start position, in alignment, of turnover region
+            end_turn_pos (int): absolute end position, in alignment, of turnover region
         """
 
         end_turn_pos = 0
@@ -868,7 +877,6 @@ class CheckAlleleCombination():
         only_mismatch_indicator_chars = final_indicator_string.replace('-', '')
         switch_char = only_mismatch_indicator_chars[0]
         start_char = only_mismatch_indicator_chars[0]
-
 
         switch_seen = False
         for i, char in enumerate(final_indicator_string):
@@ -880,12 +888,13 @@ class CheckAlleleCombination():
             if char != '-' and char != start_char and switch_seen == False:
                 end_turn_pos = i - 1  # the first nucleotide in front of X or Y
                 switch_seen = True
-                
+
         return (nr_of_switches, start_turn_pos, end_turn_pos)
     
     def print_1_switch_alleles(self):
         """
-        Prints allele combination if they resulted in 1 switch hybrid read and the number of artefacts (max. 4)
+        Prints allele combination names if they resulted in an 1 switch hybrid read, also the
+        number of artefacts is printed (max. 4).
         
         Args:
             -
@@ -912,37 +921,33 @@ class GetOneSwitchData():
          
     def get_read_position(self, read1_pos_dict, read2_pos_dict):
         """
-        Extracts the first and last value from read 1 and read 2 for both alleles positions
+        Parses and extracts the first and last value from the relative read 1 and read 2 positions for both alleles.
         
         Args:
-            read1_pos_dict (dict):
-            read2_pos_dict (dict):
+            read1_pos_dict (dict): contains allele names and all positions of read 1 relative to the alleles
+            read2_pos_dict (dict): contains allele names and all positions of read 2 relative to the alleles
             
         Returns:
-            position_read1_allele1 (str):
-            position_read2_allele1 (str):
-            position_read1_allele2 (str):
-            position_read2_allele2 (str):       
+            position_read1_allele1 (str): start and end position of read 1 relative to allele 1
+            position_read2_allele1 (str): start and end position of read 2 relative to allele 1
+            position_read1_allele2 (str): start and end position of read 1 relative to allele 2
+            position_read2_allele2 (str): start and end position of read 2 relative to allele 2     
         """
-
-        # Extract turnover sequence, based on start and end position and the sequence of allele 1 and allele 2 
-        allele1 = self.allele1
-        allele2 = self.allele2
         
-        # Get all start and stop positions from best allele matches (reads)
-        positions_list_allele1_read1 = read1_pos_dict[allele1]
+        # Get all start and stop positions from best allele matches
+        positions_list_allele1_read1 = read1_pos_dict[self.allele1]
         start_pos_allele1_read1 = positions_list_allele1_read1[0][0]
         end_pos_allele1_read1 = positions_list_allele1_read1[0][-1]
 
-        positions_list_allele2_read1  = read1_pos_dict[allele2]
+        positions_list_allele2_read1  = read1_pos_dict[self.allele2]
         start_pos_allele2_read1 = positions_list_allele2_read1[0][0]
         end_pos_allele2_read1 = positions_list_allele2_read1[0][-1] 
 
-        positions_list_allele1_read2 = read2_pos_dict[allele1]
+        positions_list_allele1_read2 = read2_pos_dict[self.allele1]
         start_pos_allele1_read2 = positions_list_allele1_read2[0][0]
         end_pos_allele1_read2 = positions_list_allele1_read2[0][-1] 
 
-        positions_list_allele2_read2 = read2_pos_dict[allele2]
+        positions_list_allele2_read2 = read2_pos_dict[self.allele2]
         start_pos_allele2_read2 = positions_list_allele2_read2[0][0]
         end_pos_allele2_read2 = positions_list_allele2_read2[0][-1] 
 
@@ -955,24 +960,24 @@ class GetOneSwitchData():
 
     def prep_for_turnover_position(self, start_pos, end_pos, allele_seq_list, allele_data): 
         """
-        
+        Prepares turn over region data. This function gets the turn over region in alignment for both alleles
+        and also the allele sequences in separeted lists, which can be used in order to determine the postions
+        of the nucleotides of the turn over region sequence later on.
+
         Args:
-            start_pos (int):
-            end_pos (int):
-            allele_seq_list (list):
-            allele_data (list):
+            start_pos (int): absolute start position, in alignment, of turnover region
+            end_pos (int): absolute end position, in alignment, of turnover region
+            allele_seq_list (list): contains allele sequences in alignment for given allele combination
+            allele_data (list): list of lists with all allele names and aligned sequences
             
         Returns:
-            turn_over_region1_for_pos(str): turnover sequence region in alignment
+            turn_over_region1_for_pos(str): turnover sequence region in alignment for first allele
             seq_list_allele1 (list): allele name and aligned sequence for first allele in allele combination
-            turn_over_region2_for_pos(str): turnover sequence region in alignment
+            turn_over_region2_for_pos(str): turnover sequence region in alignment for second allele
             seq_list_allele2 (list): allele name and aligned sequence for second allele in allele combination
-        
         """
-    
-        allele1 = self.allele1
-        allele2 = self.allele2
 
+        # First get the absolute turn over sequence positions for both alleles 
         turn_over_region1_for_pos = self.__get_pos_TO_region(allele_seq_list[0], start_pos, end_pos)
         turn_over_region2_for_pos = self.__get_pos_TO_region(allele_seq_list[1], start_pos, end_pos)
  
@@ -983,9 +988,9 @@ class GetOneSwitchData():
         seq_dict_allele1 = {}
         seq_dict_allele2 = {}
         for allele, seq in allele_data:
-            if allele1 == allele:
+            if self.allele1 == allele:
                 seq_dict_allele1[allele] = seq
-            if allele2 == allele:
+            if self.allele2 == allele:
                 seq_dict_allele2[allele] = seq
       
         seq_list_allele1 = sorted(seq_dict_allele1.items())
@@ -996,22 +1001,24 @@ class GetOneSwitchData():
     @staticmethod
     def __get_pos_TO_region(aligned_allele, start_pos, end_pos):
         """
-        
+        Generates the turn over region in alignment for the given allele. This need to be done for
+        both alleles independently as the alleles can differ from each other at those positions.
+
         Args:
-            aligned_allele (str):
-            start_pos (int):
-            end_pos (int):
-            
+            aligned_allele (str): the allele sequence in alignment
+            start_pos (int): absolute start position, in alignment, of turnover region
+            end_pos (int): absolute end position, in alignment, of turnover region
         Returns:    
-            turn_over_region_for_pos (str):       
+            turn_over_region_for_pos (str): the turnover region sequence in alignment from given allele
         """
+
         turn_over_region_for_pos = ''
         for i, char in enumerate(aligned_allele):
             if start_pos == end_pos:    # for TO with length 1
                 if i != start_pos:
                     turn_over_region_for_pos += '-'
                 if i == start_pos:
-                    if char == '-':   #nog niet tegen gekomen
+                    if char == '-':     # if allele has '-' as nucleotide
                         char = 'Z'
                     turn_over_region_for_pos += char
             if start_pos == end_pos + 1:    # for TO with length 0
@@ -1027,6 +1034,7 @@ class GetOneSwitchData():
                     turn_over_region_for_pos += '-'
                 if i >= start_pos and i <= end_pos:
                     turn_over_region_for_pos += char
+        
         return (turn_over_region_for_pos)
        
     def get_TO_position(self, TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos):
