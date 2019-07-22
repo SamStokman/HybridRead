@@ -108,9 +108,16 @@ class Read:
         
         correct_alignment = True
         check_alignment = self.read_aligned_seq.replace('-', '')
+
+        if self.read_seq == '':
+            raise ValueError ('Read sequence is empty!')
+
         if self.read_seq != check_alignment:
             correct_alignment = False
-        
+
+        if self.read_seq == '':
+            raise ValueError ('Read sequence is empty!')
+
         return correct_alignment
     
     def apply_qv(self, read_qv):
