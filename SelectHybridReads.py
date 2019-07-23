@@ -26,8 +26,7 @@ class ParseInput:
         Separetes the input data (aligned read pairs and the best matching alleles) per read pair.
         
         Args:
-            input_file (str): aligned read pairs and the best matching alleles, output from AllignAllRead.py
-        
+            input_file (str): aligned read pairs and the best matching alleles (all lines from output file AlignRead.py).
         Returns:
             all_data (list): list of lists, each list contains the read information (read name and quality values), allele
             names and all alignments for the reads and best matches (HLA-A, B and C). 
@@ -55,7 +54,6 @@ class ParseInput:
         
         Args:
             allele_names (list): contains all allele names (max. 6)
-        
         Returns:
             all_allele_combinations (list): contains all possible allele name combinations
         """
@@ -237,7 +235,6 @@ class Read:
         """
         Checks for each read position if alleles have mismatches (substitution). If a mismatch is found, value 1 is added.
         If the input data contains 6 alleles, then this number can be max. 6 for each read position.
-        
         
         Args:
             read_aligned_seq_checked (str): the updated aligned read sequence
@@ -595,7 +592,6 @@ class ReadPair():
         
         Args:
             -
-            
         Returns:
             read_consensus (str): contains read pair sequences combined, '*' indicates the gap between the reads
         """
@@ -681,7 +677,6 @@ class CheckAlleleCombination():
         
         Args:
             -
-        
         Returns:
             allele_seq_list (list): contains allele sequences in alignment for given allele combination
         """
@@ -749,7 +744,6 @@ class CheckAlleleCombination():
         
         Args:
             -
-        
         Returns:
             accept_combo (bool): True if the mismatch indicator string contains at least 2 'X' and at least 2 
             'Y' mismatches. False if not, the allele combination has not enough indicative mismatches.
@@ -769,7 +763,6 @@ class CheckAlleleCombination():
                 
         Args:
             -
-        
         Returns:
             accept_combo (bool): True if alleles have maximum 2 mutual mismatches, False if alleles
             contain more mutual mismatches.
@@ -789,7 +782,6 @@ class CheckAlleleCombination():
                 
         Args:
             -
-        
         Returns:
             count_indicator_list (list): contains ascending values (int), starting from 1, each new start
             indicates a switch for 'X' to 'Y' or vice versa. Two 1's next to each other indicate an
@@ -881,7 +873,6 @@ class CheckAlleleCombination():
         Args:
             final_indicator_string (str): an updated version of the indicator string without mutual and alternately
             mismatches.
-        
         Returns:
             nr_of_switches (int): The number of switches from 'X' to 'Y' or vice versa
             start_turn_pos (int): absolute start position, in alignment, of turnover region
@@ -914,10 +905,8 @@ class CheckAlleleCombination():
         
         Args:
             -
-        
         Returns:
             -
-        
         """
         print ('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
         print ('Allele combination:\t\t ', self.allele1.strip(' '), 'and', self.allele2)
@@ -987,7 +976,6 @@ class GetOneSwitchData():
             end_pos (int): absolute end position, in alignment, of turnover region
             allele_seq_list (list): contains allele sequences in alignment for given allele combination
             allele_data (list): list of lists with all allele names and aligned sequences
-            
         Returns:
             turn_over_region1_for_pos(str): turnover sequence region in alignment for first allele
             seq_list_allele1 (list): allele name and aligned sequence for first allele in allele combination
@@ -1067,7 +1055,6 @@ class GetOneSwitchData():
             TO_allele2_dict (dict): contains allele name and turnover positions relative to allele 2
             turn_over_region1_for_pos (str): turnover region sequence in aligenment for allele 1
             turn_over_region2_for_pos (str): turnover region sequence in aligenment for allele 2
-       
         Returns:
             position_to_region1 (str): start and end position of turnover region for allele 1
             position_to_region2 (str): start and end position of turnover region for allele 2
@@ -1114,7 +1101,6 @@ class GetOneSwitchData():
             pos_read2_allele (str): Start and stop position for read 2 relative to the allele
             turn_over_region (str): Sequence of turnover region
             pos_to_region (str): Start and stop position of turnover region relative to the allele
-        
         Returns:
             -        
         """
@@ -1138,8 +1124,6 @@ class CreateOutput():
 
     Args:
         read_name (str) = name of read
-    Returns:
-        - 
     """
 
     def __init__(self, read_name):
@@ -1152,7 +1136,6 @@ class CreateOutput():
         
         Args:
             input_file_name (str): Name of input file
-            
         Returns:
             -
         """
@@ -1191,7 +1174,6 @@ class CreateOutput():
         Args:
             allele_match (str): Name of allele (best match)
             note (str): if read consensus has 1 mismatch, then it is stored as a note here 
-            
         Returns:
             -    
         """
@@ -1213,7 +1195,6 @@ class CreateOutput():
         
         Args:
             note (str): The alleles with 0 mismatches are noted here
-            
         Returns:
             -
         """
@@ -1230,7 +1211,6 @@ class CreateOutput():
         
         Args:
             -
-            
         Returns:
             -    
         """
@@ -1255,8 +1235,7 @@ class CreateOutput():
             turn_over_region (str): Sequence of turnover region
             pos_to_region (str): Start and stop position of turnover region relative to the allele
             read_artefacts (int): Total number of read artefacts, mutual and alternately mismatches (max. 4)
-        
-        Return:
+        Returns:
             -      
         """
 
@@ -1282,7 +1261,7 @@ class CreateOutput():
             one_switch_hybrid_count (int): Number of hybrid reads with 1 switch
             total_nr_of_reads (int): The number of reads in total
 
-        Return:
+        Returns:
             -
         """
         with open(CreateOutput.output_file_overall, 'w') as db_file:
@@ -1303,8 +1282,7 @@ def main():
         
     Args:
         -
-
-    Return:
+    Returns:
         -
     """
 
