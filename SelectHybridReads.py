@@ -36,7 +36,7 @@ class ParseInput:
 
         all_data = []
         input_file = input_file.split('$$$')
-        for per_read_pair_data in input_file[1:2]:   # 1:-1
+        for per_read_pair_data in input_file[1:-1]:   # 1:-1
             temp_collect_list = []
             read_data = per_read_pair_data.split('\n')
             for line in read_data:
@@ -84,10 +84,9 @@ class Read:
     This class processes single read data but some functions can also process single sequence data other than reads.
     Several checks are included (quality and artefacts), also mismatch and position information can be generated.
 
-
     Args:
-        read_seq (str): sequence, not in alignment, from read, read consensus or turn over region
-        read_aligned_seq (str): sequence in alignment, from read, read consensus or turn over region
+        read_seq (str): sequence, not in alignment, from read, read consensus or turnover region
+        read_aligned_seq (str): sequence in alignment, from read, read consensus or turnover region
         allele_data (list): list of lists with all allele names and aligned sequences
     """
     def __init__(self, read_seq, read_aligned_seq, allele_data):
@@ -98,6 +97,8 @@ class Read:
 
     def check_alignment(self): 
         """
+        Checks if the read pair is correctly aligned. If clustal omega was not able to do so, then the alignment of the
+        read prior to it was copied. 
 
         Args:
             -
@@ -108,9 +109,6 @@ class Read:
         
         correct_alignment = True
         check_alignment = self.read_aligned_seq.replace('-', '')
-
-        if self.read_seq == '':
-            raise ValueError ('Read sequence is empty!')
 
         if self.read_seq != check_alignment:
             correct_alignment = False
@@ -392,11 +390,11 @@ class Read:
         The sequence (read_seq) is created  without its alignment. 
         
         Args:
-            aligned_sequence (str): read consensus or turn over region sequence, in its alignment
+            aligned_sequence (str): read consensus or turnover region sequence, in its alignment
             allele_data (list): list of lists with all allele names and aligned sequences
         Returns:
-            read_seq (str): sequence, not in alignment, read consensus or turn over region
-            read_aligned_seq (str): sequence in alignment, read consensus or turn over region
+            read_seq (str): sequence, not in alignment, read consensus or turnover region
+            read_aligned_seq (str): sequence in alignment, read consensus or turnover region
             allele_data (list): list of lists with all allele names and aligned sequences
         """
         read_seq = aligned_sequence.lstrip('-').rstrip('-')
@@ -488,7 +486,7 @@ class Read:
     def __get_special_case_pos(self, read_pos_dict, allele_name):
         """
         If turnover region has a length of 0 (indicated by a 'K') or 1  (indicated by a 'Z') and the allele 
-        has '-' as nucleotide. This function gets the correct position
+        has '-' as nucleotide. This function gets the correct position.
         
         Args:
             read_pos_dict (dict): contains allele names and all positions of the given sequence relative to the alleles
@@ -654,6 +652,10 @@ class ReadPair():
         
 class CheckAlleleCombination():
     """
+    This class processes each given allele combination. First an indicator string is created with indicative
+    mismatches, then this string is checked and updated. Based on this string, the number of swicthes are
+    determined. Allele combinations that result 1 switch (perfect hybrid reads) are the main focus.
+
     Args:
         read_consensus (str): contains read pair sequences combined, '*' indicates the gap between the reads
         allele_combo (list): allele names of given combination
@@ -923,6 +925,8 @@ class CheckAlleleCombination():
 
 class GetOneSwitchData(): 
     """
+    This class processes reads and allele combinations which resulted 1 switch. The read positions relative
+    to both alleles are parsed. Also the turnover region sequence and its relative position are determined.
     
     Args:
         allele1 (str): name allele 1
@@ -974,9 +978,9 @@ class GetOneSwitchData():
 
     def prep_for_turnover_position(self, start_pos, end_pos, allele_seq_list, allele_data): 
         """
-        Prepares turn over region data. This function gets the turn over region in alignment for both alleles
+        Prepares turnover region data. This function gets the turnover region in alignment for both alleles
         and also the allele sequences in separeted lists, which can be used in order to determine the postions
-        of the nucleotides of the turn over region sequence later on.
+        of the nucleotides of the turnover region sequence later on.
 
         Args:
             start_pos (int): absolute start position, in alignment, of turnover region
@@ -991,7 +995,7 @@ class GetOneSwitchData():
             seq_list_allele2 (list): allele name and aligned sequence for second allele in allele combination
         """
 
-        # First get the absolute turn over sequence positions for both alleles 
+        # First get the absolute turnover sequence positions for both alleles 
         turn_over_region1_for_pos = self.__get_pos_TO_region(allele_seq_list[0], start_pos, end_pos)
         turn_over_region2_for_pos = self.__get_pos_TO_region(allele_seq_list[1], start_pos, end_pos)
  
@@ -1015,9 +1019,11 @@ class GetOneSwitchData():
     @staticmethod
     def __get_pos_TO_region(aligned_allele, start_pos, end_pos):
         """
-        Generates the turn over region in alignment for the given allele. This need to be done for
+        Generates the turnover region in alignment for the given allele. This need to be done for
         both alleles independently as the alleles can differ from each other at those positions.
-
+        If the turnover region consist of 0 nucleotides, then the '-' of the second (imaginary)
+        nucleotide in the switch (e.g. XY, position Y) is replaces by a 'K', which is the indicator.      
+      
         Args:
             aligned_allele (str): the allele sequence in alignment
             start_pos (int): absolute start position, in alignment, of turnover region
@@ -1036,7 +1042,7 @@ class GetOneSwitchData():
                         char = 'Z'
                     turn_over_region_for_pos += char
             if start_pos == end_pos + 1:    # for TO with length 0
-                char = 'K'     # maken we gewoon altijd een K van, deze sequence bestaat toch niet
+                char = 'K'     
                 if i != start_pos:
                     turn_over_region_for_pos += '-'
                 if i == start_pos:
@@ -1053,54 +1059,48 @@ class GetOneSwitchData():
        
     def get_TO_position(self, TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos):
         """
+        Gets start and end positions for turnover region for both alleles. If the turnover region consist
+        of 0 or 1 nucleotide, then the start and end position are equal, and just the start position is selected. 
         
         Args:
-            TO_allele1_dict (dict):
-            TO_allele2_dict (dict):
-            turn_over_region1_for_pos (str):
-            turn_over_region2_for_pos (str):
+            TO_allele1_dict (dict): contains allele name and turnover positions relative to allele 1
+            TO_allele2_dict (dict): contains allele name and turnover positions relative to allele 2
+            turn_over_region1_for_pos (str): turnover region sequence in aligenment for allele 1
+            turn_over_region2_for_pos (str): turnover region sequence in aligenment for allele 2
        
         Returns:
-            position_to_region1 (list?):
-            position_to_region2
-            turn_over_region1 (str):
-            turn_over_region2 (str):
+            position_to_region1 (str): start and end position of turnover region for allele 1
+            position_to_region2 (str): start and end position of turnover region for allele 2
+            turn_over_region1 (str): turnover region sequence for allele 1
+            turn_over_region2 (str): turnover region sequence for allele 2
         """
 
-        allele1 = self.allele1
-        allele2 = self.allele2
-        # Get all start and stop positions from best allele matches (TO regions)
-        # if to region 1 has 0 nucleotides
-        if TO_allele1_dict[allele1] == []:
-            start_pos_allele1_TO_region = 0
-            end_pos_allele1_TO_region = 0
-        if TO_allele1_dict[allele1] != []:
-            positions_list_allele1_TO_region = TO_allele1_dict[allele1]
-            start_pos_allele1_TO_region = positions_list_allele1_TO_region[0]
-            end_pos_allele1_TO_region = positions_list_allele1_TO_region[-1]
-        # if to region 2 has 0 nucleotides
-        if TO_allele2_dict[allele2] == []:
-            start_pos_allele2_TO_region = 0
-            end_pos_allele2_TO_region = 0
-        if TO_allele2_dict[allele2] != []:
-            positions_list_allele2_TO_region  = TO_allele2_dict[allele2]
-            start_pos_allele2_TO_region = positions_list_allele2_TO_region[0]
-            end_pos_allele2_TO_region = positions_list_allele2_TO_region[-1] 
+        # Get all turnover start and end positions for allele 1
+        positions_list_allele1_TO_region = TO_allele1_dict[self.allele1]
+        start_pos_allele1_TO_region = positions_list_allele1_TO_region[0]
+        end_pos_allele1_TO_region = positions_list_allele1_TO_region[-1]
+        
+        # Get all turnover start and end positions for allele 2
+        positions_list_allele2_TO_region  = TO_allele2_dict[self.allele2]
+        start_pos_allele2_TO_region = positions_list_allele2_TO_region[0]
+        end_pos_allele2_TO_region = positions_list_allele2_TO_region[-1] 
 
         # delete deletions (just keep the sequence), and K, since it is a non existing TO sequence (lenght 0)
         turn_over_region1 = turn_over_region1_for_pos.replace('K','-').replace('-','')
         turn_over_region2 = turn_over_region2_for_pos.replace('K','-').replace('-','')
 
-        # if length TO position is 0 or 1, just the start position is taken into account
+        # Parse start and end position of turnover regions
         if start_pos_allele1_TO_region != end_pos_allele1_TO_region:
             position_to_region1 = str(start_pos_allele1_TO_region) + '-'+ str(end_pos_allele1_TO_region)
         if start_pos_allele2_TO_region != end_pos_allele2_TO_region:
             position_to_region2 = str(start_pos_allele2_TO_region) + '-'+ str(end_pos_allele2_TO_region)
+        
+        # if length TO position is 0 or 1, just the start position is taken into account  
         if start_pos_allele1_TO_region == end_pos_allele1_TO_region:
             position_to_region1 = str(start_pos_allele1_TO_region)
         if start_pos_allele2_TO_region == end_pos_allele2_TO_region:
             position_to_region2 = str(start_pos_allele2_TO_region)
-       
+
         return (position_to_region1, position_to_region2, turn_over_region1, turn_over_region2)
     
     @staticmethod
@@ -1131,13 +1131,16 @@ class GetOneSwitchData():
          
 class CreateOutput():
     """
-    
+    First, all output files including the headers are created, 5 in total. After the 
+    analysis of each read, which is categorized, the data (at least the read name) is
+    written into the correct output file. Ultimately, the metadata consisting of 
+    category quantities is added to its output file.
+
     Args:
-        read_name (str) = Name of read
+        read_name (str) = name of read
     Returns:
         - 
     """
-
 
     def __init__(self, read_name):
         self.read_name = read_name
@@ -1152,14 +1155,13 @@ class CreateOutput():
             
         Returns:
             -
-        
         """
         data_type = input_file_name[-9:-4]
-        CreateOutput.output_file_non_hybrids = 'non_hybrid_reads_{0}.txt'.format(data_type)
-        CreateOutput.output_file_zero_reads = 'zero_reads_{0}.txt'.format(data_type)
-        CreateOutput.output_file_more_switches = 'hybrid_reads_more_switches_{0}.txt'.format(data_type)
-        CreateOutput.output_file_1_switch = 'hybrid_reads_1_switch_{0}.txt'.format(data_type)
-        CreateOutput.output_file_overall = 'metadata_{0}.txt'.format(data_type)
+        CreateOutput.output_file_non_hybrids = 'OutputFiles/non_hybrid_reads_{0}.txt'.format(data_type)
+        CreateOutput.output_file_zero_reads = 'OutputFiles/zero_reads_{0}.txt'.format(data_type)
+        CreateOutput.output_file_more_switches = 'OutputFiles/hybrid_reads_more_switches_{0}.txt'.format(data_type)
+        CreateOutput.output_file_1_switch = 'OutputFiles/hybrid_reads_1_switch_{0}.txt'.format(data_type)
+        CreateOutput.output_file_overall = 'OutputFiles/metadata_{0}.txt'.format(data_type)
 
         #create output file for non hybrid reads
         with open(CreateOutput.output_file_non_hybrids, 'w') as db_file:
@@ -1183,8 +1185,8 @@ class CreateOutput():
     
     def non_hybrid_read(self, allele_match, note):
         """
-        Adds the non hybrid reads to the output file.
-        Zero mismatches between both reads and for same allele
+        Adds the non hybrid reads to the output file, if the read consensus has 1 mismatch, then
+        it is added in a note.
         
         Args:
             allele_match (str): Name of allele (best match)
@@ -1206,7 +1208,8 @@ class CreateOutput():
  
     def zero_reads(self, note):
         """
-        Adds the zero reads (reads that have 0 mismatches for multiple alleles) to the output file
+        Adds the zero reads (reads that have 0 mismatches for multiple alleles) to the output file.
+        The read name and a note with the alleles with zero mismatches are added.
         
         Args:
             note (str): The alleles with 0 mismatches are noted here
@@ -1223,7 +1226,7 @@ class CreateOutput():
     def hybrid_read_more_switches(self):
         """
         Adds the hybrid reads with more than 1 switch to the output file, these read pairs gave too many
-        mismatches which were not indicative
+        mismatches which were not indicative. Only the read name is added.
         
         Args:
             -
@@ -1243,15 +1246,15 @@ class CreateOutput():
         Adds all hybrid reads with 1 switch data to the output file
         
         Args:
-            allele_name (str):
-            pos_read1_allele (str):
-            pos_read2_allele (srt):
-            allele_read1_mismatches (str):
-            allele_read2_mismatches (str):
-            allele_consensus_mismatches (str):
-            turn_over_region (str):
-            pos_to_region (str):
-            read_artefacts (int):
+            allele_name (str): Allele name
+            pos_read1_allele (str): Start and stop position for read 1 relative to the allele
+            pos_read2_allele (srt): Start and stop position for read 2 relative to the allele
+            allele_read1_mismatches (str): Total number of mismatches in read 1
+            allele_read2_mismatches (str): Total number of mismatches in read 2
+            allele_consensus_mismatches (str): Total number of mismatches in read consensus
+            turn_over_region (str): Sequence of turnover region
+            pos_to_region (str): Start and stop position of turnover region relative to the allele
+            read_artefacts (int): Total number of read artefacts, mutual and alternately mismatches (max. 4)
         
         Return:
             -      
@@ -1306,16 +1309,17 @@ def main():
     """
 
     input_file = argv[1]
+
+    # Create all output files
     CreateOutput.prep_output_files(input_file)
   
-    # Class ParseInput (Parse input file and get all allele combinations)
-
+    # Parse input file
     with open (input_file) as file_object:
             input_file = file_object.read()
-            
     all_data, allele_data = ParseInput.collect_all_data(input_file)
     all_allele_combinations = ParseInput.get_allele_combinations(allele_data)
 
+    # Track all reads
     incorrect_aligned_reads = 0
     rejected_read_count = 0
     non_hybrid_count = 0
@@ -1323,6 +1327,8 @@ def main():
     more_switches_count = 0
     one_switch_hybrid_count = 0
     read_counter = 1
+
+    # Loop through each read pair
     for read_info in all_data:
         print ('Number of analyzed reads :', read_counter, '\n')
         read_counter += 1
@@ -1337,11 +1343,13 @@ def main():
         read1_aligned_seq = read_info[2][1]
         read2_aligned_seq = read_info[3][1]
         
+        # Get allele data
         allele_data = read_info[4:]
+       
         # Perform checks for read 1
         R1_read = Read(read1_seq, read1_aligned_seq, allele_data)
         check_alignment = R1_read.check_alignment()
-        if check_alignment == False:
+        if check_alignment == False:  # Check if alignement correct
             incorrect_aligned_reads += 1
             continue        
         R1_alignment_after_first_check = R1_read.apply_qv(read1_qv)
@@ -1354,7 +1362,6 @@ def main():
 
         # Check if read pair met the requirements
         R1_and_R2 = ReadPair(R1_alignment_after_second_check, R2_alignment_after_second_check, read1_seq, read2_seq)
-
         approve_reads = R1_and_R2.check_read_pair()
         if approve_reads == True:
             print ('Paired-end read is accepted')
@@ -1362,6 +1369,11 @@ def main():
             rejected_read_count += 1
             print ('Paired-end read is rejected')
             continue
+
+        ###########
+        ###########  Mismatches per read
+        ###########
+        # Get mismatches per read for each allele
         R1_mismatch_dict, R1_mismatch_dict_ex = R1_read.get_mismatches(R1_alignment_after_second_check)
         R2_mismatch_dict, R2_mismatch_dict_ex = R2_read.get_mismatches(R2_alignment_after_second_check)
         
@@ -1385,10 +1397,6 @@ def main():
                 zero_mismatch_count_read2 += 1
                 zero_mismatch_allele_read2 += [allele]
 
-
-        ###########
-        ###########  Mismatches per read
-        ###########
         ### For non hybrid reads (perfect non hybrid)
         non_hybrid = False
         if zero_mismatch_count_read1 == zero_mismatch_count_read2 == 1:
@@ -1403,7 +1411,7 @@ def main():
                     non_hybrid = True
                     continue
 
-        ### Multiple alleles with 0 mismatches (zero_mismatch_multiple_alleles_count)
+        ### For zero reads (multiple alleles with 0 mismatches)
         if zero_mismatch_count_read1 != 0 and zero_mismatch_count_read2 != 0:
             if zero_mismatch_count_read1 > 1 or zero_mismatch_count_read2 > 1:
                 note = 'Note: Allele(s) {0} has/have 0 mismatches with read 1\tAllele(s) {1} has/have 0 mismatches with read 2'.format(zero_mismatch_allele_read1, zero_mismatch_allele_read2)
@@ -1416,8 +1424,6 @@ def main():
         ###########
         ###########  Mismatches read consensus
         ###########
-        ### For non hybrid reads with 0 or 1 mismatches in read consensus
-
         
         # Create read consensus
         alignment_read_consensus = R1_and_R2.create_read_consensus()
@@ -1425,7 +1431,7 @@ def main():
         mismatch_dict_read_con, mismatch_dict_read_con_ex = consensus_read.get_mismatches(alignment_read_consensus)
         mismatch_dict_read_con_sorted = sorted(mismatch_dict_read_con.items(), key=lambda kv: kv[1])
             
-        ### if read consensus has 0 or 1 mismatches
+        ### For non hybrid reads, if read consensus has 0 or 1 mismatches
         if mismatch_dict_read_con_sorted[0][1][0] == 0 or mismatch_dict_read_con_sorted[0][1][0] == 1:
             allele_match = mismatch_dict_read_con_sorted[0][0]
             if mismatch_dict_read_con_sorted[0][1][0] == 1:
@@ -1435,7 +1441,7 @@ def main():
             read_output.non_hybrid_read(allele_match, note)
             continue
         
-        # print all mismatch info
+        # Print all mismatch information
         R1_read.print_mismatches('First read', R1_mismatch_dict_ex)
         R2_read.print_mismatches('Second read', R2_mismatch_dict_ex)
         consensus_read.print_mismatches('Read consensus', mismatch_dict_read_con_ex)
@@ -1444,15 +1450,18 @@ def main():
         ###########
         ###########  Determine number of switches for all allele combinations
         ###########
-
         more_switches = True
+        # Loop through all allele combinations
         for allele_combo in all_allele_combinations:
             allele1 = allele_combo[0]
             allele2 = allele_combo[1]
          
             per_allele_info = CheckAlleleCombination(alignment_read_consensus, allele_combo, allele_data)
+
+            # Create indicator string
             allele_seq_list = per_allele_info.create_indicator_string()
 
+            # Apply first and second check, and update indicator string
             check1 = per_allele_info.check_indicative_SNPs()
             if check1 == True:
                 check2 = per_allele_info.check_mutual_SNPs()
@@ -1468,6 +1477,7 @@ def main():
                 final_indicator_string = per_allele_info.update_indicator_string(count_indicator_list)
             else:
                 continue
+            
             # Check if updated indicator string has enough indicative SNPs
             repeat_check1 = per_allele_info.check_indicative_SNPs()
             
@@ -1477,14 +1487,20 @@ def main():
             else:
                 continue
 
+            # Generate all data if allele combo resulted in a 1 switch indicator string
             if nr_of_switches == 1:
                 more_switches = False
+
+                # Print 1 switch pre data
                 per_allele_info.print_1_switch_alleles()
                 read1_pos_dict = R1_read.get_relative_position()
                 read2_pos_dict = R2_read.get_relative_position()
+                
+                # Get read positions
                 final_to_region = GetOneSwitchData(allele1, allele2)
-
                 pos_read1_allele1, pos_read2_allele1, pos_read1_allele2, pos_read2_allele2 = final_to_region.get_read_position(read1_pos_dict, read2_pos_dict)
+               
+                # Get turnover region sequence and positions
                 turn_over_region1_for_pos, seq_list_allele1, turn_over_region2_for_pos, seq_list_allele2 = final_to_region.prep_for_turnover_position(start_turn_pos, end_turn_pos, allele_seq_list, allele_data)
                 TO1_seq = Read.classmethod_for_non_read(turn_over_region1_for_pos, seq_list_allele1)
                 TO2_seq = Read.classmethod_for_non_read(turn_over_region2_for_pos, seq_list_allele2)
@@ -1493,9 +1509,12 @@ def main():
                 TO_allele2_dict = TO2_seq.get_relative_position()
 
                 pos_to_region1, pos_to_region2, turn_over_region1, turn_over_region2 = final_to_region.get_TO_position(TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos)
+                
+                # Print 1 switch extended data              
                 GetOneSwitchData.print_TO_output(allele1, pos_read1_allele1, pos_read2_allele1, turn_over_region1, pos_to_region1)
                 GetOneSwitchData.print_TO_output(allele2, pos_read1_allele2, pos_read2_allele2, turn_over_region2, pos_to_region2)
                 
+                # Parse 1 switch extended data and add it to output file
                 allele1_read1_mismatches = str(R1_mismatch_dict[allele1][0])
                 allele1_read2_mismatches = str(R2_mismatch_dict[allele1][0])
                 allele2_read1_mismatches = str(R1_mismatch_dict[allele2][0])
@@ -1507,17 +1526,19 @@ def main():
                 read_output.hybrid_read_1_switch(allele1, pos_read1_allele1, pos_read2_allele1, allele1_read1_mismatches, allele1_read2_mismatches, allele1_consensus_mismatches, turn_over_region1, pos_to_region1, number_of_artefacts)
                 read_output.hybrid_read_1_switch(allele2, pos_read1_allele2, pos_read2_allele2, allele2_read1_mismatches, allele2_read2_mismatches, allele2_consensus_mismatches, turn_over_region2, pos_to_region2, number_of_artefacts)
 
+        # If at least one the allele combinations resulted in indicator string with 1 switch
         if more_switches == False:
             print ('Hybrid read with 1 switch: ', read_name)
             one_switch_hybrid_count += 1
-        
-        # For hybrid reads with more switches (too many mismatches)        
+
+        # If non of the allele combinations resulted in indicator string with 1 switch, then we found a
+        # hybrid read with more switches (too many mismatches).  
         if more_switches == True:
             more_switches_count += 1
             read_output = CreateOutput(read_name)
             read_output.hybrid_read_more_switches()
        
-            
+    # Output metadata
     total_nr_of_reads = read_counter-1 + incorrect_aligned_reads + rejected_read_count
     CreateOutput.metadata(incorrect_aligned_reads, rejected_read_count, non_hybrid_count, zero_count, more_switches_count, one_switch_hybrid_count, total_nr_of_reads)
 
