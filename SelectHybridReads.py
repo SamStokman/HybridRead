@@ -35,7 +35,7 @@ class ParseInput:
 
         all_data = []
         input_file = input_file.split('$$$')
-        for per_read_pair_data in input_file[1:-1]:   # 1:-1
+        for per_read_pair_data in input_file[1:4]:   # 1:-1
             temp_collect_list = []
             read_data = per_read_pair_data.split('\n')
             for line in read_data:
