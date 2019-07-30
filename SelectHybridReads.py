@@ -956,7 +956,7 @@ class GetOneSwitchData():
             position_read1_allele2 (str): start and end position of read 1 relative to allele 2
             position_read2_allele2 (str): start and end position of read 2 relative to allele 2     
         """
-        
+
         # Get all start and stop positions from best allele matches
         positions_list_allele1_read1 = read1_pos_dict[self.allele1]
         start_pos_allele1_read1 = positions_list_allele1_read1[0]
@@ -988,8 +988,8 @@ class GetOneSwitchData():
         of the nucleotides of the turnover region sequence later on.
 
         Args:
-            start_pos (int): absolute start position, in alignment, of turnover region
-            end_pos (int): absolute end position, in alignment, of turnover region
+            start_pos (int): absolute start position, in alignment, first nucleotide in turnover region
+            end_pos (int): absolute end position, in alignment, last nucleotide in turnover region
             allele_seq_list (list): contains allele sequences in alignment for given allele combination
             allele_data (list): list of lists with all allele names and aligned sequences
         Returns:
@@ -1030,8 +1030,8 @@ class GetOneSwitchData():
       
         Args:
             aligned_allele (str): the allele sequence in alignment
-            start_pos (int): absolute start position, in alignment, of turnover region
-            end_pos (int): absolute end position, in alignment, of turnover region
+            start_pos (int): absolute start position, in alignment, first nucleotide in turnover region
+            end_pos (int): absolute end position, in alignment, last nucleotide in turnover region
         Returns:    
             turn_over_region_for_pos (str): the turnover region sequence in alignment from given allele
         """
