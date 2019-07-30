@@ -35,7 +35,7 @@ class ParseInput:
 
         all_data = []
         input_file = input_file.split('$$$')
-        for per_read_pair_data in input_file[1:4]:   # 1:-1
+        for per_read_pair_data in input_file[1:3]:   # 1:-1
             temp_collect_list = []
             read_data = per_read_pair_data.split('\n')
             for line in read_data:
@@ -801,6 +801,7 @@ class CheckAlleleCombination():
 
         # to check for XYX situations
         only_mismatch_indicator_chars = mismatch_indicator_string.replace('-', '')
+
         start_allele = only_mismatch_indicator_chars[0]
         count_indicator_length = 0
         count_indicator_list = []
@@ -815,12 +816,16 @@ class CheckAlleleCombination():
 
         # The number of XYX situations, only a single char between two others
         pcr_artefact = 0
+        
+        if count_indicator_list[1] == 1 and count_indicator_list[2] == 1 :  # if the indiactor string starts with a single X or Y
+            pcr_artefact -= 1
 
         for i, number in enumerate(count_indicator_list):
             if i < len(count_indicator_list)-1:
                 next_number = count_indicator_list[i+1]
                 if number == 1 and next_number == 1:
                     pcr_artefact += 1
+
         self.number_of_artefacts += pcr_artefact
         number_of_artefacts = self.number_of_artefacts
 
@@ -849,7 +854,7 @@ class CheckAlleleCombination():
         indicator_combo_str_wo_artefacts = ''
         only_mismatch_indicator_chars = mismatch_indicator_string.replace('-', '')
         new_indicator_str = ''
-        
+
         for i, number in enumerate(count_indicator_list):
             if i < len(count_indicator_list)-1:
                 next_number = count_indicator_list[i+1]
@@ -881,9 +886,9 @@ class CheckAlleleCombination():
             final_indicator_string (str): an updated version of the indicator string without mutual and alternately
             mismatches.
         Returns:
-            nr_of_switches (int): The number of switches from 'X' to 'Y' or vice versa
-            start_turn_pos (int): absolute start position, in alignment, of turnover region
-            end_turn_pos (int): absolute end position, in alignment, of turnover region
+            nr_of_switches (int): The number of switches; from 'X' to 'Y' or vice versa
+            start_turn_pos (int): absolute start position, in alignment, first nucleotide in turnover region
+            end_turn_pos (int): absolute end position, in alignment, last nucleotide in turnover region
         """
 
         end_turn_pos = 0
@@ -902,6 +907,10 @@ class CheckAlleleCombination():
             if char != '-' and char != start_char and switch_seen == False:
                 end_turn_pos = i - 1  # the first nucleotide in front of X or Y
                 switch_seen = True
+
+        if nr_of_switches != 1:
+            start_turn_pos = None
+            end_turn_pos = None
 
         return (nr_of_switches, start_turn_pos, end_turn_pos)
     
