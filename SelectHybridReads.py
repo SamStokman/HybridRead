@@ -541,17 +541,18 @@ class ReadPair():
         N_quantity (int): the maximum number of N's allowed per read
     """
     
-    min_read_length = 0
-    N_quantity = 50000
+    
+
 
     def __init__(self, read1_aligned_checked, read2_aligned_checked, read1_seq, read2_seq):
         self.read1_aligned_checked = read1_aligned_checked
         self.read2_aligned_checked = read2_aligned_checked
         self.read1_seq = read1_seq
         self.read2_seq = read2_seq
+    #   self.min_read_length = 0
+     #   self.N_quantity = 50000
 
-        
-    def check_read_pair(self):
+    def check_read_pair(self, min_read_length, N_quantity):
         """
         Checks the minimum read length of the original reads and the number N's per aligned and checked read. Returns a 
         bool that indicates or the reads of a read pair met the requirements or not.
@@ -572,11 +573,11 @@ class ReadPair():
         read2_N_count = self.read2_aligned_checked.count('N')
 
         # check read length
-        if read1_length < self.min_read_length or read2_length < self.min_read_length:    
+        if read1_length < min_read_length or read2_length < min_read_length:    
             approve_reads = False
 
         # check nr of Ns
-        if read1_N_count > self.N_quantity or read2_N_count > self.N_quantity:    
+        if read1_N_count > N_quantity or read2_N_count > N_quantity:    
             approve_reads = False
 
         return approve_reads
@@ -597,6 +598,9 @@ class ReadPair():
         """
         read1_seq = self.read1_aligned_checked
         read2_seq = self.read2_aligned_checked
+        
+        if len(read1_seq) != len(read2_seq):
+            raise ValueError ('Aligned reads differ in length!')
 
         
         # replace '-' in front of and after read 1 with '*', but not in the read itself 
@@ -1340,7 +1344,12 @@ def main():
 
         # Check if read pair met the requirements
         R1_and_R2 = ReadPair(R1_alignment_after_second_check, R2_alignment_after_second_check, read1_seq, read2_seq)
-        approve_reads = R1_and_R2.check_read_pair()
+
+        # Adjust requirement values here:
+        min_read_length = 0
+        N_quantity = 10000
+
+        approve_reads = R1_and_R2.check_read_pair(min_read_length, N_quantity)
         if approve_reads == True:
             print ('Paired-end read is accepted')
         if approve_reads == False:

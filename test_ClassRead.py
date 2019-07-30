@@ -1,7 +1,7 @@
 """
 22-07-'19
 
-A few unit test for SelectHybridReads.py
+This script contains 6 unittests for the class Read from SelectHybridReads.py.
 
 
 """
@@ -10,8 +10,15 @@ import unittest
 import SelectHybridReads
 
 class TestRead(unittest.TestCase):
+    """
+    This class contains unittests
+
+    """
 
     def setUp(self):
+        """
+
+        """
         self.read_seq = 'CCCCC'
         self.read_aligned_seq = '---CC--CCC---'
         self.allele_data1 = [['allele_A1','---CC--CCC---'],
@@ -29,6 +36,12 @@ class TestRead(unittest.TestCase):
                             ['allele_C2','---CT--CCC---']]
 
     def test_check_alignment(self):
+        """
+        True if the alignment of the read sequence is identical to the read sequence in alignment without the hyphen characters.
+        False if the alignment of the read sequence is not identical to the read sequence in alignment without the hyphen characters. 
+        ValueError raised if the read sequence is an empty string.
+
+        """
 
         allele_data = {}
         # Test case 1
@@ -49,7 +62,14 @@ class TestRead(unittest.TestCase):
 
     
     def test_apply_qv(self):
+        """
+        !: quality value 0
+        I: quality value 40
 
+        The quality value can be set by the user, therefore only the smallest and largest qv's are taken
+        into account.
+
+        """
         allele_data = {}
 
         #Test case 1, low quality values
@@ -57,34 +77,48 @@ class TestRead(unittest.TestCase):
         read1_qv = '!!!!!'
         self.assertEqual(Read_test.apply_qv(read1_qv), '---NN--NNN---')
         
-        #Test case 1, high quality values
+        #Test case 2, high quality values
         Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, allele_data)
         read1_qv = 'IIIII'
         self.assertEqual(Read_test.apply_qv(read1_qv), '---CC--CCC---')
 
-        #Test case 1, high and low quality values
+        #Test case 3, high and low quality values
         Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, allele_data)
         read1_qv = 'I!!I!'
         self.assertEqual(Read_test.apply_qv(read1_qv), '---CN--NCN---')
 
         
     def test_check_read_artefacts(self):
-        
+        """
+        If the aligned read has no mismatches, then the read alignment after the first check is identical to the input alignment.
+        If all alleles have a mismatch, then the nucleotide at that postion is replaced by an 'N'
+        If some alleles have a mismatch, then the read alignment after the first check is identical to the input alignment.
+
+
+        """
         #Test case 1, no mismatches
-
-
         Read_alignment_after_first_check = '---CC--CCN---'
         Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, self.allele_data1)
         self.assertEqual(Read_test.check_read_artefacts(Read_alignment_after_first_check), '---CC--CCN---')
 
         #Test case 2, all alleles have 1 mismatches
-
         Read_alignment_after_first_check = '---CC--CCN---'
-
         Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, self.allele_data2)
         self.assertEqual(Read_test.check_read_artefacts(Read_alignment_after_first_check), '---CN--CCN---')
-      
-        #Test case 3, not enough alleles
+        
+        #Test case 3, some alleles have 1 mismatches, but not all
+        allele_data =[['allele_A1','---CT--CCC---'],
+                      ['allele_A2','---CT--CCC---'],
+                      ['allele_B1','---CC--CCC---'],
+                      ['allele_B2','---CC--CCC---'],
+                      ['allele_C1','---CT--CCC---'],
+                      ['allele_C2','---CT--CCC---']]
+
+        Read_alignment_after_first_check = '---CC--CCN---'
+        Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, allele_data)
+        self.assertEqual(Read_test.check_read_artefacts(Read_alignment_after_first_check), '---CC--CCN---')
+    
+        #Test case 4, not enough alleles
         allele_data =[['allele_A1','---CT--CCC---'],
                       ['allele_A2','---CT--CCC---'],
                       ['allele_B1','---CT--CCC---'],
@@ -99,7 +133,9 @@ class TestRead(unittest.TestCase):
     
             
     def test_get_mismatches(self):
+        """
 
+        """
         # Test case 1 no mismatches
 
         Read_alignment_after_second_check = '---CC--CCN---'
@@ -137,7 +173,7 @@ class TestRead(unittest.TestCase):
                                                   'allele_B2': [1,0,0,1],
                                                   'allele_C1': [1,0,0,1],
                                                   'allele_C2': [1,0,0,1]})
-       # Test case random mismatches
+       # Test case, more complex situations
         allele_data  = [['allele_A1','-CC----------'],
                         ['allele_A2','---TT--TTT---'],
                         ['allele_B1','CCCCCCCCCCCCC'],
@@ -163,7 +199,15 @@ class TestRead(unittest.TestCase):
                                                   'allele_C2': [0,2,5,7]})
 
     def test_classmethod_for_non_read(cls):
+        """
+        The input for the read consensus and turnover region are in alignment. The class' constructor requires the sequence
+        without the alignemnt.
 
+        The allele data should not change.
+        The allele in alignment should not change.
+        The read sequence is the allele in alignment minus the hyphen characters.
+
+        """
         # Test case 1: normal
         single_sequence_in_alignment = '---TTTTT---'
         single_allele_in_alignment = '-----CCC-----'
@@ -174,7 +218,9 @@ class TestRead(unittest.TestCase):
         cls.assertEqual(test_classmethod_result.allele_data, '-----CCC-----')
 
     def test_get_relative_position(self):
+        """
 
+        """
         # Test case 1: normal
         Read_test = SelectHybridReads.Read(self.read_seq, self.read_aligned_seq, self.allele_data1)
         self.assertDictEqual(Read_test.get_relative_position(), {'allele_A1': [0,1,2,3,4],
