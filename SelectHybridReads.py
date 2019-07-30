@@ -43,7 +43,11 @@ class ParseInput:
                 if len(line) > 1:
                     temp_collect_list += [line]
             all_data += [temp_collect_list]
-        allele_names = all_data[0][4:]
+        allele_names_list = all_data[0][4:]
+
+        allele_names = []
+        for allele_name_line in allele_names_list:
+            allele_names += [allele_name_line[0]]
 
         return all_data, allele_names
 
@@ -57,6 +61,15 @@ class ParseInput:
         Returns:
             all_allele_combinations (list): contains all possible allele name combinations
         """
+
+        if len(allele_names) < 4:
+            raise ValueError ('The sample contains less than 4 alleles!')
+
+        # for samples with 4 different alleles
+        if len(allele_names) == 4:
+            first_nr_list = [0,0,0,1,1,2]
+            second_nr_list = [1,2,3,2,3,3] 
+
         # for samples with 5 different alleles
         if len(allele_names) == 5:
             first_nr_list = [0,0,0,0,1,1,1,2,2,3]
@@ -67,13 +80,9 @@ class ParseInput:
             first_nr_list = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
             second_nr_list = [1,2,3,4,5,2,3,4,5,3,4,5,4,5,5]
 
-        all_alleles_names = []
-        for allele, seq in allele_names:
-           all_alleles_names += [allele]
-
         all_allele_combinations = []
         for i in range(len(first_nr_list)):
-            all_allele_combinations += [[all_alleles_names[int(first_nr_list[i])], all_alleles_names[int(second_nr_list[i])]]]
+            all_allele_combinations += [[allele_names[int(first_nr_list[i])], allele_names[int(second_nr_list[i])]]]
         
         return (all_allele_combinations)
         
@@ -1099,9 +1108,9 @@ class GetOneSwitchData():
             position_to_region2 = str(start_pos_allele2_TO_region) + '-'+ str(end_pos_allele2_TO_region)
         
         # if length TO position is 0 or 1, just the start position is taken into account  
-        if start_pos_allele1_TO_region == end_pos_allele1_TO_region:
+        if start_pos_allele1_TO_region == end_pos_allele1_TO_region or start_pos_allele1_TO_region-1 == end_pos_allele1_TO_region:
             position_to_region1 = str(start_pos_allele1_TO_region)
-        if start_pos_allele2_TO_region == end_pos_allele2_TO_region:
+        if start_pos_allele2_TO_region == end_pos_allele2_TO_region or start_pos_allele2_TO_region-1 == end_pos_allele2_TO_region:
             position_to_region2 = str(start_pos_allele2_TO_region)
 
         return (position_to_region1, position_to_region2, turn_over_region1, turn_over_region2)

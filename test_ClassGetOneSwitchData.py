@@ -29,6 +29,9 @@ class TestGetOneSwitchData(unittest.TestCase):
                             ['allele_C2','---CC--CCC---']]
 
     def test_get_read_position(self):
+        """
+
+        """
         
         # test case 1, standard values
         Switch_test = SelectHybridReads.GetOneSwitchData(self.allele1, self.allele2)
@@ -117,7 +120,7 @@ class TestGetOneSwitchData(unittest.TestCase):
 
         """
         
-        # Test case 1
+        # Test case 1, standard
         Switch_test = SelectHybridReads.GetOneSwitchData(self.allele1, self.allele2)
 
         TO_allele1_dict = {'allele_A1': [2,3,4,5]}
@@ -132,6 +135,40 @@ class TestGetOneSwitchData(unittest.TestCase):
 
         self.assertEqual(turn_over_region1, 'CCCC')
         self.assertEqual(turn_over_region2, 'TTTT')
+
+
+       # Test case 2, turn over region with length 1
+        Switch_test = SelectHybridReads.GetOneSwitchData(self.allele1, self.allele2)
+
+        TO_allele1_dict = {'allele_A1': [2,2]}
+        TO_allele2_dict = {'allele_A2': [2,2]}
+        turn_over_region1_for_pos = '--C------'
+        turn_over_region2_for_pos = '--T------'
+
+        position_to_region1, position_to_region2, turn_over_region1, turn_over_region2 = Switch_test.get_TO_position(TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos)
+
+        self.assertEqual(position_to_region1, '2')
+        self.assertEqual(position_to_region2, '2')
+
+        self.assertEqual(turn_over_region1, 'C')
+        self.assertEqual(turn_over_region2, 'T')
+
+        # Test case 2, turn over region with length 0
+        Switch_test = SelectHybridReads.GetOneSwitchData(self.allele1, self.allele2)
+
+        TO_allele1_dict = {'allele_A1': [2,1]}
+        TO_allele2_dict = {'allele_A2': [2,1]}
+        turn_over_region1_for_pos = '--K------'
+        turn_over_region2_for_pos = '--K------'
+
+        position_to_region1, position_to_region2, turn_over_region1, turn_over_region2 = Switch_test.get_TO_position(TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos)
+
+        self.assertEqual(position_to_region1, '2')
+        self.assertEqual(position_to_region2, '2')
+
+        self.assertEqual(turn_over_region1, '')
+        self.assertEqual(turn_over_region2, '')
+
 
 if __name__ == '__main__':
     unittest.main()
