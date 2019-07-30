@@ -5,7 +5,7 @@ This script categorizes reads in non hybrid reads, zero reads, hybrid reads with
 The reads are categorized based on mismatches (SNPs) and the number of switches. 
 Also metadata is generated and the file with 1 switch data contains the most extended information.
 
-Input required: output file with alignments from AllignAllRead.py
+Input required: output file with alignments from AlignAllRead.py
 
 """
 
@@ -600,7 +600,7 @@ class ReadPair():
         read2_seq = self.read2_aligned_checked
         
         if len(read1_seq) != len(read2_seq):
-            raise ValueError ('Aligned reads differ in length!')
+            raise ValueError ('Aligned reads have a different length!')
 
         
         # replace '-' in front of and after read 1 with '*', but not in the read itself 
@@ -723,6 +723,8 @@ class CheckAlleleCombination():
         # Extract the mismatch indicator sequences for allele match 1 and 2
         seq_allele_1 = turn_seq_list[0][1]
         seq_allele_2 = turn_seq_list[1][1]
+        if allele_seq_list[0] == allele_seq_list[1]:
+            raise ValueError ('Aligned allele sequences (from allele combo) are identical!')
 
         # Str with mismatch indicator sequences for allele match 1 and 2 combined
         mismatch_indicator_combo_str = ''
@@ -738,6 +740,7 @@ class CheckAlleleCombination():
                     mismatch_indicator_combo_str += 'M'
         
         self.indicator_string = mismatch_indicator_combo_str
+
 
         return allele_seq_list
     
