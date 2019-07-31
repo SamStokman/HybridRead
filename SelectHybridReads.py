@@ -427,8 +427,9 @@ class Read:
     def get_relative_position(self):
         """
         Determines all positions of a given sequence (read, read consensus or turnover region) per nucleotide relative to 
-        the allele. All alleles are included. If the sequence starts in front of the allele (does not occur often), then those
-        positions are ignored, they do not exist. Same goes for gaps in alleles (sequence has nucleotide and allele does not).
+        the allele (the positions of the allele nucleotides that are covered by the given sequence). All alleles are included. If 
+        the sequence starts in front of the allele (does not occur often), then those positions are ignored, they do not exist. 
+        Same goes for gaps in alleles (sequence has nucleotide and allele does not).
         
         Args:
             -            
