@@ -2,7 +2,7 @@
 22-07-'19
 
 This script contains 6 unittests for the class Read from SelectHybridReads.py.
-
+The test can be ran with the bash command line: python3 test_ClassRead.py
 
 """
 
@@ -68,7 +68,6 @@ class TestRead(unittest.TestCase):
 
         The quality value can be set by the user, therefore only the smallest and largest qv's are taken
         into account.
-
         """
         allele_data = {}
 
@@ -93,8 +92,6 @@ class TestRead(unittest.TestCase):
         If the aligned read has no mismatches, then the read alignment after the first check is identical to the input alignment.
         If all alleles have a mismatch, then the nucleotide at that postion is replaced by an 'N'
         If some alleles have a mismatch, then the read alignment after the first check is identical to the input alignment.
-
-
         """
         #Test case 1, no mismatches
         Read_alignment_after_first_check = '---CC--CCN---'
@@ -206,7 +203,6 @@ class TestRead(unittest.TestCase):
         The allele data should not change.
         The allele in alignment should not change.
         The read sequence is the allele in alignment minus the hyphen characters.
-
         """
         # Test case 1: normal
         single_sequence_in_alignment = '---TTTTT---'
