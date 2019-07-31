@@ -551,16 +551,11 @@ class ReadPair():
         N_quantity (int): the maximum number of N's allowed per read
     """
     
-    
-
-
     def __init__(self, read1_aligned_checked, read2_aligned_checked, read1_seq, read2_seq):
         self.read1_aligned_checked = read1_aligned_checked
         self.read2_aligned_checked = read2_aligned_checked
         self.read1_seq = read1_seq
         self.read2_seq = read2_seq
-    #   self.min_read_length = 0
-     #   self.N_quantity = 50000
 
     def check_read_pair(self, min_read_length, N_quantity):
         """
