@@ -3,7 +3,6 @@
 
 This script contains 6 unittests for the class Read from SelectHybridReads.py.
 The test can be ran with the bash command line: python3 test_ClassRead.py
-
 """
 
 import unittest
