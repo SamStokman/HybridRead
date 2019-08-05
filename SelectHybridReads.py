@@ -1557,7 +1557,7 @@ def main():
             read_output.hybrid_read_more_switches()
        
     # Output metadata
-    total_nr_of_reads = incorrect_aligned_reads + rejected_read_count + non_hybrid_count + zero_count, more_switches_count + one_switch_hybrid_count + total_nr_of_reads
+    total_nr_of_reads = incorrect_aligned_reads + rejected_read_count + non_hybrid_count + zero_count, more_switches_count + one_switch_hybrid_count
     CreateOutput.metadata(incorrect_aligned_reads, rejected_read_count, non_hybrid_count, zero_count, more_switches_count, one_switch_hybrid_count, total_nr_of_reads)
 
 if __name__ == "__main__":
