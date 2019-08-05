@@ -5,7 +5,7 @@ This script categorizes reads in non hybrid reads, zero reads, hybrid reads with
 The reads are categorized based on mismatches (SNPs) and the number of switches. 
 Also metadata is generated and the file with 1 switch data contains the most extended information.
 
-Input required: output file with alignments from AlignAllRead.py
+Input required: output file with alignments from AlignReads.py
 
 """
 
@@ -746,7 +746,6 @@ class CheckAlleleCombination():
         
         self.indicator_string = mismatch_indicator_combo_str
 
-
         return allele_seq_list
     
     def check_indicative_SNPs(self):
@@ -901,7 +900,6 @@ class CheckAlleleCombination():
         only_mismatch_indicator_chars = final_indicator_string.replace('-', '')
         switch_char = only_mismatch_indicator_chars[0]
         start_char = only_mismatch_indicator_chars[0]
-
         switch_seen = False
         for i, char in enumerate(final_indicator_string):
             if char != '-' and char != switch_char:
@@ -1042,8 +1040,11 @@ class GetOneSwitchData():
         """
 
         turn_over_region_for_pos = ''
+        check_for_empty_char_string = ''
+        empty_string =  True
         for i, char in enumerate(aligned_allele):
             if start_pos == end_pos:    # for TO with length 1
+                empty_string = False
                 if i != start_pos:
                     turn_over_region_for_pos += '-'
                 if i == start_pos:
@@ -1051,6 +1052,7 @@ class GetOneSwitchData():
                         char = 'Z'
                     turn_over_region_for_pos += char
             if start_pos == end_pos + 1:    # for TO with length 0
+                empty_string = False
                 char = 'K'     
                 if i != start_pos:
                     turn_over_region_for_pos += '-'
@@ -1059,11 +1061,21 @@ class GetOneSwitchData():
             if start_pos != end_pos + 1 and start_pos != end_pos:  # for TO > length 1
                 if i < start_pos:
                     turn_over_region_for_pos += '-'
+                    check_for_empty_char_string += '-'
                 if i > end_pos:
                     turn_over_region_for_pos += '-'
+                    check_for_empty_char_string += '-'
                 if i >= start_pos and i <= end_pos:
-                    turn_over_region_for_pos += char
-        
+                    if char != '-':
+                        turn_over_region_for_pos += char
+                        empty_string = False
+                    if char == '-':
+                        turn_over_region_for_pos += char
+                        check_for_empty_char_string += 'Z'
+       
+        if empty_string == True:
+            turn_over_region_for_pos = check_for_empty_char_string
+
         return (turn_over_region_for_pos)
        
     def get_TO_position(self, TO_allele1_dict, TO_allele2_dict, turn_over_region1_for_pos, turn_over_region2_for_pos):
@@ -1082,6 +1094,8 @@ class GetOneSwitchData():
             turn_over_region1 (str): turnover region sequence for allele 1
             turn_over_region2 (str): turnover region sequence for allele 2
         """
+
+
 
         # Get all turnover start and end positions for allele 1
         positions_list_allele1_TO_region = TO_allele1_dict[self.allele1]
@@ -1161,11 +1175,11 @@ class CreateOutput():
             -
         """
         data_type = input_file_name[-9:-4]
-        CreateOutput.output_file_non_hybrids = 'OutputFiles/non_hybrid_reads_{0}.txt'.format(data_type)
-        CreateOutput.output_file_zero_reads = 'OutputFiles/zero_reads_{0}.txt'.format(data_type)
-        CreateOutput.output_file_more_switches = 'OutputFiles/hybrid_reads_more_switches_{0}.txt'.format(data_type)
-        CreateOutput.output_file_1_switch = 'OutputFiles/hybrid_reads_1_switch_{0}.txt'.format(data_type)
-        CreateOutput.output_file_overall = 'OutputFiles/metadata_{0}.txt'.format(data_type)
+        CreateOutput.output_file_non_hybrids = 'non_hybrid_reads_{0}.txt'.format(data_type)
+        CreateOutput.output_file_zero_reads = 'zero_reads_{0}.txt'.format(data_type)
+        CreateOutput.output_file_more_switches = 'hybrid_reads_more_switches_{0}.txt'.format(data_type)
+        CreateOutput.output_file_1_switch = 'hybrid_reads_1_switch_{0}.txt'.format(data_type)
+        CreateOutput.output_file_overall = 'metadata_{0}.txt'.format(data_type)
 
         #create output file for non hybrid reads
         with open(CreateOutput.output_file_non_hybrids, 'w') as db_file:
@@ -1219,7 +1233,7 @@ class CreateOutput():
         Returns:
             -
         """
-        print ('Read with 0 mismatches for multiple alleles:', read_name)
+        print ('Read with 0 mismatches for multiple alleles:', self.read_name)
 
         # add reads that have 0 mismatches for multiple alleles
         with open(CreateOutput.output_file_zero_reads, 'a') as db_file:
@@ -1236,11 +1250,11 @@ class CreateOutput():
             -    
         """
 
-        print ('Read with more switches: ', read_name)
+        print ('Read with more switches: ', self.read_name)
         
         # add hybrid reads with more switches  
         with open(CreateOutput.output_file_more_switches, 'a') as db_file:
-            db_file.write(read_name + '\n') 
+            db_file.write(self.read_name + '\n') 
    
     def hybrid_read_1_switch(self, allele_name, pos_read1_allele, pos_read2_allele, allele_read1_mismatches, allele_read2_mismatches, allele_consensus_mismatches, turn_over_region, pos_to_region, read_artefacts):
         """
@@ -1363,8 +1377,8 @@ def main():
         R1_and_R2 = ReadPair(R1_alignment_after_second_check, R2_alignment_after_second_check, read1_seq, read2_seq)
 
         # Adjust requirement values here:
-        min_read_length = 0
-        N_quantity = 10000
+        min_read_length = 80
+        N_quantity = 5
 
         approve_reads = R1_and_R2.check_read_pair(min_read_length, N_quantity)
         if approve_reads == True:
@@ -1543,7 +1557,7 @@ def main():
             read_output.hybrid_read_more_switches()
        
     # Output metadata
-    total_nr_of_reads = read_counter-1 + incorrect_aligned_reads + rejected_read_count
+    total_nr_of_reads = incorrect_aligned_reads + rejected_read_count + non_hybrid_count + zero_count, more_switches_count + one_switch_hybrid_count + total_nr_of_reads
     CreateOutput.metadata(incorrect_aligned_reads, rejected_read_count, non_hybrid_count, zero_count, more_switches_count, one_switch_hybrid_count, total_nr_of_reads)
 
 if __name__ == "__main__":
