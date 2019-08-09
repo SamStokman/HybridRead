@@ -1377,8 +1377,8 @@ def main():
         R1_and_R2 = ReadPair(R1_alignment_after_second_check, R2_alignment_after_second_check, read1_seq, read2_seq)
 
         # Adjust requirement values here:
-        min_read_length = 0
-        N_quantity = 100000
+        min_read_length = 50
+        N_quantity = 15
 
         approve_reads = R1_and_R2.check_read_pair(min_read_length, N_quantity)
         if approve_reads == True:

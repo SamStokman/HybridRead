@@ -68,10 +68,28 @@ def create_combo_output(input_file1, input_file2, input_file3):
                 continue
   
     read_list_sorted = sorted(read_dict.items(), key=lambda x: x[1])
+
+    total_quantity_dict = {}
     for allele, reads in read_list_sorted:
+        nr_of_reads = len(reads)
         allele = allele.split(',')
+        allele1 = allele[0].strip(' ')
+        allele2 = allele[1].strip(' ')
+
+        if allele1 in total_quantity_dict.keys():
+            total_quantity_dict[allele1] += nr_of_reads
+
+        if allele2 in total_quantity_dict.keys():
+            total_quantity_dict[allele2] += nr_of_reads
+
+        if allele1 not in total_quantity_dict.keys():
+            total_quantity_dict[allele1] = nr_of_reads
+        if allele2 not in total_quantity_dict.keys():
+            total_quantity_dict[allele2] = nr_of_reads
+
+        total_quantity_dict[allele1]
         print (allele, '$', len(reads)) 
-        
+
     output_file_name = 'hybrid_read_summary.txt'
     with open(output_file_name, 'w') as db_file: 
         db_file.write('Allele combination\tHLA-A\tHLA-B\tHLA-C\tTotal\n')
@@ -122,7 +140,12 @@ def create_combo_output(input_file1, input_file2, input_file3):
                     C_count += 1
                 ABC_count = A_count + B_count + C_count
             db_file.write(str(alleles) +'\t'+ str(round(A_count/ABC_count, 2)) + '\t' + str(round(B_count/ABC_count, 2)) + '\t' + str(round(C_count/ABC_count, 2)) + '\n')
-     
+        
+        db_file.write('$$$\n')
+        db_file.write('Hybrid read quantities per allele\n')
+        for key, value in total_quantity_dict.items():
+            db_file.write(str(key) +'\t'+ str(value) + '\n')        
+
 
 if __name__ == "__main__":
 
