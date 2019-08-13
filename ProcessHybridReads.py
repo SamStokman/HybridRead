@@ -34,7 +34,7 @@ def create_combo_output(input_file1, input_file2, input_file3):
         artefacts = int(line[7])
         if artefacts == 0:   # change here the number of allowed artefacts for HLA-A
             approved_read_list += [read_name]
-        collect_all_data += [['A'] + line]
+            collect_all_data += [['A'] + line]
 
     input_file2 = input_file2.split('\n')
     for line in input_file2[1:-1]:
@@ -43,7 +43,7 @@ def create_combo_output(input_file1, input_file2, input_file3):
         artefacts = int(line[7])
         if artefacts == 0:    # change here the number of allowed artefacts for HLA-B
             approved_read_list += [read_name]
-        collect_all_data += [['B'] + line]
+            collect_all_data += [['B'] + line]
   
     input_file3 = input_file3.split('\n')
     for line in input_file3[1:-1]:
@@ -52,7 +52,7 @@ def create_combo_output(input_file1, input_file2, input_file3):
         artefacts = int(line[7])
         if artefacts == 0:   # change here the number of allowed artefacts for HLA-C
             approved_read_list += [read_name]
-        collect_all_data += [['C'] + line]
+            collect_all_data += [['C'] + line]
 
     read_dict = {}
     paired_end_read = False
