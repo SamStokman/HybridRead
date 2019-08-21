@@ -1,6 +1,6 @@
 Sequences aligned with Clustal Omega version 1.2.4 
-Command line used: clustalo --infile align_read.fa --force --outfile align_read_output.fa --verbose --outfmt clustal --resno --threads 80 --seqtype dna --output-order tree-order
-Reads from sam file: TestSamFile.sam
+Command line used: clustalo --infile align_read.fa --force --outfile align_read_output.fa --verbose --outfmt clustal --resno --threads 20 --seqtype dna --output-order tree-order
+Reads from sam file: sam_file.sam
 6 paired-end reads in total
 $$$
 M01812:233:000000000-D4RGR:1:1101:15915:1332	ACCGGGACTCAGATTCTCCCCAGACGCCGAGGATGGCCGTCATGGCGCCCCGAACCCTCCTCCTGCTACTCTCGGGGGCCCTGGCCCTGACCGAGACCTGGGCCGGTGAGTGCGGGGTCGGGAGGGAAATGGCCTCTGTGGGGAGGAGCG	AA@AA?D1CFFFG33FGG1FAF0EF00AEEEAAA1/FF?E?EGFHFGEEEGGG/E/EGEEGHFHHCCHHBCGBEAC/BCCCCGEHH/CGH0</C@-AFBG0.<FCG-<CC;CGGCGGGB?-:-@@@B?ABFFEBF?FB9;FB<F@?-AA@
