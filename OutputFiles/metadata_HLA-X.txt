@@ -1,7 +1,0 @@
-Incorrect aligned reads	0
-Rejected reads	0
-Non hybrid reads	9
-Hybrid reads with more switches	0
-Hybrid reads with 1 switch	8
-Read with 0 mismatches for multiple alleles	0
-Total nr. of reads	17
