@@ -1,0 +1,7 @@
+Incorrect aligned reads	0
+Rejected reads	6436
+Non hybrid reads	23344
+Hybrid reads with more switches	419
+Hybrid reads with 1 switch	1959
+Read with 0 mismatches for multiple alleles	432
+Total nr. of reads	32590
