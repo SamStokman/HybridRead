@@ -1,0 +1,74 @@
+Read name	Note
+M01812:233:000000000-D4RGR:1:1101:16170:1773	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:15504:1855	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:18322:2285	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:11257:2400	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:9867:2864	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:8967:3094	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:17825:3321	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:18272:3353	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:22798:3367	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:7794:4200	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:8038:4334	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:19779:4381	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:10592:4738	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:10239:4832	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:10649:5067	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:9559:5300	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:21405:5332	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:23999:5576	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:9378:5602	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:20109:6124	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:11754:6265	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:16030:6276	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:12004:6413	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:4978:6507	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:17156:6591	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:24864:6627	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:25012:6682	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:26317:6687	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:5715:6849	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:19146:7047	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:24667:7127	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:25931:7213	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:24014:7219	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:25243:7380	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:26210:7813	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:20256:7866	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:20815:7934	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:22523:7993	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:5230:8117	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:12986:8182	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:7200:8221	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:15850:8415	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:25040:8427	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:11129:8728	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:20025:8743	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:18087:8840	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:16627:8941	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:28243:9281	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:26688:9342	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:6126:9500	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:25320:9522	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:18794:9739	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:16805:9943	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:19497:10008	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:5428:10240	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:17701:10339	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:26992:10440	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:7460:10507	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:18135:10568	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:14425:10572	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:14926:10871	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:19969:11040	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:6742:11162	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01', 'B*51:01:01:01', 'C*07:04:01:01', 'C*15:02:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:28867:11162	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:2412:11297	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:28845:11610	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:9245:11713	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:10380:11794	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:25831:11806	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:7466:11816	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      '] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:16305:11957	Note: Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:17427:12042	Note: Allele(s) ['A*02:16      '] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
+M01812:233:000000000-D4RGR:1:1101:27390:12070	Note: Allele(s) ['A*03:01:01:01'] has/have 0 mismatches with read 1	Allele(s) ['A*02:16      ', 'A*03:01:01:01'] has/have 0 mismatches with read 2
